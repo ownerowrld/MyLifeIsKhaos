@@ -1811,58 +1811,58 @@ end
 game.Players.PlayerRemoving:Connect(function(player)
     local char = player.Character
     if char then
- hrp local = char:FindFirstChild("HumanoidRootPart")
- se hrp entidade
- velocidadeHistória[hrp] = nulo
- aceleraçãoHistória[hrp] = nulo
- fim
- fim
-fim)
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            velocityHistory[hrp] = nil
+            accelerationHistory[hrp] = nil
+        end
+    end
+end)
 
-jogo.Jogadores.JogadorLocal.PersonagemAdicionado:Conectar(função(personagem)
- tarefa.esperar(0,5)
- podeAtirar = verdadeiro
- equipAttempts = 0
- velocidadeHistória = {}
- aceleraçãoHistória = {}
- humanoide local = personagem:WaitForChild("Humanoide", 5)
- se humanoide então
- se MINHA_VELOCIDADE ~= 16 então humanoid.WalkSpeed = MY_SPEED fim
- se MEU_SALTO ~= 50 então humanoid.JumpPower = MY_JUMP end
- hookHumanoidStats(humanoide)
- fim
- se sheriffConfig.showButton e não botaoTela então
- tarefa.esperar(0,5)
- CriarBotaoTela()
- fim
- se noclipActive entrada cacheNoclipParts() fim
-fim)
+game.Players.LocalPlayer.CharacterAdded:Connect(function(character)
+    task.wait(0.5)
+    podeAtirar = true
+    equipAttempts = 0
+    velocityHistory = {}
+    accelerationHistory = {}
+    local humanoid = character:WaitForChild("Humanoid", 5)
+    if humanoid then
+        if MY_SPEED ~= 16 then humanoid.WalkSpeed = MY_SPEED end
+        if MY_JUMP ~= 50 then humanoid.JumpPower = MY_JUMP end
+        hookHumanoidStats(humanoid)
+    end
+    if sheriffConfig.showButton and not botaoTela then
+        task.wait(0.5)
+        CriarBotaoTela()
+    end
+    if noclipActive then cacheNoclipParts() end
+end)
 
-podeAtirar = verdadeiro
+podeAtirar = true
 
-local _initChar = jogo.Jogadores.JogadorLocal.Personagem
-se _initChar então
- local _initHum = _initChar:FindFirstChild("Humanoide")
- se _initHum então hookHumanoidStats(_initHum) fim
-fim
+local _initChar = game.Players.LocalPlayer.Character
+if _initChar then
+    local _initHum = _initChar:FindFirstChild("Humanoid")
+    if _initHum then hookHumanoidStats(_initHum) end
+end
 
--- ==================== SALVE / CONFIGURAÇÕES ====================
+-- ==================== SAVE / SETTINGS ====================
 
-SaveManager:SetLibrary(Fluente)
-Gerente de interface: SetLibrary(Fluent)
-SaveManager: IgnorarConfiguraçõesDeTema()
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+SaveManager:IgnoreThemeSettings()
 SaveManager:SetIgnoreIndexes({})
-Gerente de interface: SetFolder("Amor FluenteIsabella")
+InterfaceManager:SetFolder("FluentLoveIsabella")
 SaveManager:SetFolder("FluentLoveIsabella/mm2")
-InterfaceManager:BuildInterfaceSection(Tabs.Configurações)
-SaveManager:BuildConfigSection(Tabs.Configurações)
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
 
-Janela:SelecioneTab(1)
+Window:SelectTab(1)
 
-Fluente:Notificar({
- Título = "AmorIsabella",
- Conteúdo = "Script carregado com sucesso!",
- Duração = 5
+Fluent:Notify({
+    Title = "LoveIsabella",
+    Content = "Script loaded successfully!",
+    Duration = 5
 })
 
-SaveManager:CarregarAutoloadConfig()
+SaveManager:LoadAutoloadConfig()
