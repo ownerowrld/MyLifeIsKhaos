@@ -2021,58 +2021,58 @@ Players.PlayerRemoving:Connect(function(player)
         local hrp = char:FindFirstChild("HumanoidRootPart")
         if hrp then
             velocityHistory[hrp]     = nil
- aceleraçãoHistória[hrp] = nulo
- fim
- fim
-fim)
+            accelerationHistory[hrp] = nil
+        end
+    end
+end)
 
-LP.CaractereAdicionado:Conectar(função(caractere)
- tarefa.esperar(0,5)
- podeAtirar = verdadeiro
- equipAttempts = 0
- velocidadeHistória = {}
- aceleraçãoHistória = {}
+LP.CharacterAdded:Connect(function(character)
+    task.wait(0.5)
+    podeAtirar    = true
+    equipAttempts = 0
+    velocityHistory     = {}
+    accelerationHistory = {}
 
- hum local = personagem:WaitForChild("Humanoide", 5)
- se cantarolar então
- se MY_SPEED ~= 16 então hum.WalkSpeed = MY_SPEED fim
- se MY_JUMP ~= 50 então hum.JumpPower = MY_JUMP fim
- hookHumanoidStats(hum)
- fim
+    local hum = character:WaitForChild("Humanoid", 5)
+    if hum then
+        if MY_SPEED ~= 16 then hum.WalkSpeed = MY_SPEED end
+        if MY_JUMP  ~= 50 then hum.JumpPower = MY_JUMP  end
+        hookHumanoidStats(hum)
+    end
 
- se sheriffConfig.showButton e não botaoTela então
- tarefa.esperar(0,5)
- CriarBotaoTela()
- fim
+    if sheriffConfig.showButton and not botaoTela then
+        task.wait(0.5)
+        CriarBotaoTela()
+    end
 
- se noclipActive então cacheNoclipParts() fim
-fim)
+    if noclipActive then cacheNoclipParts() end
+end)
 
-podeAtirar = verdadeiro
+podeAtirar = true
 
 local _initChar = LP.Character
-se _initChar então
- local _initHum = _initChar:FindFirstChild("Humanoide")
- se _initHum então hookHumanoidStats(_initHum) fim
-fim
+if _initChar then
+    local _initHum = _initChar:FindFirstChild("Humanoid")
+    if _initHum then hookHumanoidStats(_initHum) end
+end
 
--- ==================== SALVE / CONFIGURAÇÕES ====================
+-- ==================== SAVE / SETTINGS ====================
 
-SaveManager:SetLibrary(Fluente)
-Gerenciador de interface: SetLibrary(Fluent)
-SaveManager: IgnoreConfiguraçõesDeTema()
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+SaveManager:IgnoreThemeSettings()
 SaveManager:SetIgnoreIndexes({})
 InterfaceManager:SetFolder("FluentLoveIsabella")
 SaveManager:SetFolder("FluentLoveIsabella/mm2")
-InterfaceManager:BuildInterfaceSection(Tabs.Configurações)
-SaveManager:BuildConfigSection(Tabs.Configurações)
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
 
-Janela:SelectTab(1)
+Window:SelectTab(1)
 
-Fluente:Notificar({
- Título = "LoveIsabella",
- Conteúdo = "Script carregado com sucesso!",
- Duração = 5
+Fluent:Notify({
+    Title   = "LoveIsabella",
+    Content = "Script loaded successfully!",
+    Duration = 5
 })
 
-SaveManager:CarregarAutoloadConfig()
+SaveManager:LoadAutoloadConfig()
