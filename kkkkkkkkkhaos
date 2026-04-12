@@ -114,6 +114,12 @@ local tamanhoBot      = 80
 local BOTAO_POS_FILE  = "fluent/mm2/botao_pos.txt"
 local savedBotaoPos   = nil
 
+-- Ghost mode botão
+local ghostBotaoTela       = nil
+local ghostBotaoArrastavel = false
+local ghostBotaoPos        = nil
+local GHOST_POS_FILE       = "fluent/mm2/ghost_botao_pos.txt"
+
 -- ==================== SAVE POS BOTÃO ====================
 
 local function salvarPosicaoBotao(pos)
@@ -140,6 +146,32 @@ local function carregarPosicaoBotao()
 end
 
 savedBotaoPos = carregarPosicaoBotao() or UDim2.new(0.85, 0, 0.5, 0)
+
+-- Ghost mode pos
+local function salvarGhostPos(pos)
+    if type(writefile) ~= "function" then return end
+    local data = string.format("%.6f,%.2f,%.6f,%.2f",
+        pos.X.Scale, pos.X.Offset, pos.Y.Scale, pos.Y.Offset)
+    pcall(function()
+        if type(makefolder) == "function" then
+            pcall(makefolder, "fluent")
+            pcall(makefolder, "fluent/mm2")
+        end
+        writefile(GHOST_POS_FILE, data)
+    end)
+end
+
+local function carregarGhostPos()
+    if type(readfile) ~= "function" then return nil end
+    local data = nil
+    pcall(function() data = readfile(GHOST_POS_FILE) end)
+    if not data or data == "" then return nil end
+    local xs, xo, ys, yo = data:match("([^,]+),([^,]+),([^,]+),([^,]+)")
+    if not xs then return nil end
+    return UDim2.new(tonumber(xs), tonumber(xo), tonumber(ys), tonumber(yo))
+end
+
+ghostBotaoPos = carregarGhostPos() or UDim2.new(0.85, 0, 0.65, 0)
 
 -- ==================== UTILITÁRIOS ====================
 
@@ -411,7 +443,7 @@ local function CalcularPredicaoRapida(alvoHRP, alvoAim, minhaPos)
             local headAboveGround = headOffset.Y + 3
             local gravCorrection  = gravity * repLag * totalTime
 
-            -- estima tempo de pouso (só na fase de queda)
+            
             local tPouso = 999
             if velY < 0 then
                 local a_eq = 0.5 * gravity
@@ -429,28 +461,28 @@ local function CalcularPredicaoRapida(alvoHRP, alvoAim, minhaPos)
             end
 
             if isRising then
-                -- subida: trajetória de arco completa
+                
                 deltaY = (velY * totalTime) - (0.5 * gravity * totalTime * totalTime) - gravCorrection
             elseif isApex then
-                -- ápice: velocidade Y ~0, só gravidade durante o voo da bala
+                
                 deltaY = -(0.5 * gravity * totalTime * totalTime) - gravCorrection
             elseif isFalling then
                 if tPouso < totalTime then
-                    -- pousa antes da bala chegar: mira na altura do chão + cabeça
+                
                     if rayResult then
                         deltaY = (rayResult.Position.Y + headAboveGround) - alvoPos.Y
                     else
                         deltaY = (velY * totalTime) - (0.5 * gravity * totalTime * totalTime) - gravCorrection
                     end
                 else
-                    -- ainda no ar quando a bala chegar
+                    
                     deltaY = (velY * totalTime) - (0.5 * gravity * totalTime * totalTime) - gravCorrection
                 end
             end
 
             deltaY = deltaY * sheriffConfig.VerticalMultiplier
 
-            -- queda extra por distância longa (original)
+            
             local horizDistFinal2 = Vector2.new(alvoPos.X - minhaPos.X, alvoPos.Z - minhaPos.Z).Magnitude
             if horizDistFinal2 > 80 then
                 deltaY = deltaY - (horizDistFinal2 - 80) * 0.008 * sheriffConfig.VerticalDistanceScale
@@ -458,7 +490,7 @@ local function CalcularPredicaoRapida(alvoHRP, alvoAim, minhaPos)
         end
     end
 
-    -- sanity check: limita o deslocamento total da predição
+    
     local velMag2       = Vector2.new(alvoVelRaw.X, alvoVelRaw.Z).Magnitude
     local horizDistFin  = Vector2.new(alvoPos.X - minhaPos.X, alvoPos.Z - minhaPos.Z).Magnitude
     local tEst          = horizDistFin / BULLET_SPEED
@@ -777,9 +809,20 @@ local function createHitboxForPlayer(player)
     local hrp   = char:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
     local pName = player.Name
-    if not originalSizes[pName] then originalSizes[pName] = hrp.Size end
+
+    
+    if not originalSizes[pName] then
+        local sz = hrp.Size
+       
+        if sz.X <= 3 and sz.Y <= 5 and sz.Z <= 3 then
+            originalSizes[pName] = sz
+        else
+            originalSizes[pName] = Vector3.new(2, 2, 1)
+        end
+    end
+
     hrp.Size = Vector3.new(hitboxConfig.size, hitboxConfig.size, hitboxConfig.size)
-    hrp.Transparency = 0.9
+    hrp.Transparency = 1  -- totalmente invisível: não entra no bounding box do ESP Highlight
     hrp.Material = Enum.Material.ForceField
     hrp.CanCollide = false
     for _, part in pairs(char:GetDescendants()) do
@@ -809,7 +852,7 @@ local function updateAllHitboxes()
                 local newSize = Vector3.new(hitboxConfig.size, hitboxConfig.size, hitboxConfig.size)
                 if hrp.Size ~= newSize then
                     hrp.Size = newSize
-                    hrp.Transparency = 0.9
+                    hrp.Transparency = 1  
                     hrp.Material = Enum.Material.ForceField
                     hrp.CanCollide = false
                     for _, part in pairs(player.Character:GetDescendants()) do
@@ -892,13 +935,16 @@ local function stopHitbox()
         end
     end
     hitboxConnections = {}
+
+    
     for pName, hrp in pairs(hitboxParts) do
         if hrp and hrp.Parent then
             pcall(function()
                 local v = hrp:FindFirstChild("HitboxVisual")
                 if v then v:Destroy() end
-                hrp.Size = originalSizes[pName] or Vector3.new(2, 2, 1)
-                hrp.Transparency = 0
+                hrp.Size         = originalSizes[pName] or Vector3.new(2, 2, 1)
+                hrp.Transparency = 1  -- mantém invisível (padrão do MM2)
+                hrp.Material     = Enum.Material.SmoothPlastic
                 hrp.CanCollide   = true
                 local char = hrp.Parent
                 if char then
@@ -909,87 +955,131 @@ local function stopHitbox()
             end)
         end
     end
+
+   
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LP and player.Character then
+            local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                pcall(function()
+                    local visual = hrp:FindFirstChild("HitboxVisual")
+                    if visual then visual:Destroy() end
+                    -- só restaura se o tamanho estiver claramente expandido
+                    local stored = originalSizes[player.Name]
+                    if stored then
+                        hrp.Size = stored
+                    elseif hrp.Size.X > 3 or hrp.Size.Y > 5 or hrp.Size.Z > 3 then
+                        -- fallback seguro: tamanho padrão do HRP no MM2
+                        hrp.Size = Vector3.new(2, 2, 1)
+                    end
+                    hrp.Transparency = 1
+                    hrp.Material     = Enum.Material.SmoothPlastic
+                    hrp.CanCollide   = true
+                    for _, part in pairs(player.Character:GetDescendants()) do
+                        if part:IsA("BasePart") and part ~= hrp then
+                            part.CanCollide = true
+                        end
+                    end
+                end)
+            end
+        end
+    end
+
     hitboxParts   = {}
     originalSizes = {}
 end
 
--- ==================== ESP (NOVO) ====================
+-- ==================== ESP ====================
 
-local espConnections      = {}
-local activeESP           = {}
-local espRunning          = false
-local roleCache           = {}
-local roleDetectorStarted = false
-local gunESPConnection    = nil
-local coinESPConnection   = nil
+local espConnections = {}
+local activeESP      = {}
+local espRunning     = false
+local roleCache      = {}  
 
-local function resetESPColors()
-    roleCache = {}
-    for _, e in pairs(activeESP) do
-        if e.highlight then e.highlight.OutlineColor = espConfig.innocentColor end
-        if e.label     then e.label.TextColor3       = espConfig.innocentColor end
-    end
+
+local playerDataRemote = nil
+local function getPlayerDataRemote()
+    if playerDataRemote then return playerDataRemote end
+    local ok, r = pcall(function()
+        return game:GetService("ReplicatedStorage"):FindFirstChild("GetPlayerData", true)
+    end)
+    if ok and r then playerDataRemote = r end
+    return playerDataRemote
 end
 
-local function startRoleDetector()
-    if roleDetectorStarted then return end
-    roleDetectorStarted = true
+local rolePollThread = nil
 
-    local ok, remote = pcall(function()
-        return game:GetService("ReplicatedStorage").Remotes.Gameplay.PlayerDataChanged
-    end)
-    if ok and remote then
-        remote.OnClientEvent:Connect(function(data)
-            if type(data) ~= "table" then return end
-            if next(data) == nil then resetESPColors(); return end
-            for username, playerData in pairs(data) do
-                if type(playerData) == "table" and playerData.Role then
-                    local plr = Players:FindFirstChild(username)
-                    if plr then roleCache[plr] = playerData.Role end
+local function startRolePoll()
+    if rolePollThread then return end
+    rolePollThread = task.spawn(function()
+        while espRunning do
+            local remote = getPlayerDataRemote()
+            if remote then
+                local ok, data = pcall(function() return remote:InvokeServer() end)
+                if ok and type(data) == "table" then
+                    local newCache = {}
+                    for plrName, plrData in pairs(data) do
+                        if type(plrData) == "table" then
+                            -- morto, sem papel ou papel vazio = Lobby (inocente)
+                            if plrData.Dead or not plrData.Role or plrData.Role == "" then
+                                newCache[plrName] = "Lobby"
+                            else
+                                newCache[plrName] = plrData.Role
+                            end
+                        end
+                    end
+                    roleCache = newCache
                 end
             end
-        end)
-    end
-
-    local ok2, roundEnd = pcall(function()
-        return game:GetService("ReplicatedStorage").Remotes.Gameplay:FindFirstChild("RoundEndFade")
+            task.wait(0.25)
+        end
     end)
-    if ok2 and roundEnd then
-        roundEnd.OnClientEvent:Connect(resetESPColors)
-    end
 end
 
-local function getRoleColor(targetPlayer, character)
-    local cached = roleCache[targetPlayer]
-    if cached then
-        local r = cached:lower()
-        if r == "murderer" then return espConfig.murdererColor end
-        if r == "sheriff"  then return espConfig.sheriffColor  end
-        return espConfig.innocentColor
+local function stopRolePoll()
+    if rolePollThread then
+        task.cancel(rolePollThread)
+        rolePollThread = nil
     end
-    local bp       = targetPlayer:FindFirstChild("Backpack")
-    local hasKnife = (bp and bp:FindFirstChild("Knife")) or (character and character:FindFirstChild("Knife"))
-    local hasGun   = (bp and bp:FindFirstChild("Gun"))   or (character and character:FindFirstChild("Gun"))
-    if hasKnife then return espConfig.murdererColor end
-    if hasGun   then return espConfig.sheriffColor  end
+    roleCache = {}
+end
+
+
+local function getRoleColor(playerName)
+    local plr = Players:FindFirstChild(playerName)
+    if plr then
+        local char = plr.Character
+        local bp   = plr:FindFirstChild("Backpack")
+        -- checa ao vivo: faca = murderer, arma = sheriff
+        local hasKnife = (char and char:FindFirstChild("Knife")) or (bp and bp:FindFirstChild("Knife"))
+        local hasGun   = (char and char:FindFirstChild("Gun"))   or (bp and bp:FindFirstChild("Gun"))
+        if hasKnife then return espConfig.murdererColor end
+        if hasGun   then return espConfig.sheriffColor  end
+    end
+    
+    local role = roleCache[playerName]
+    if role == "Murderer" then return espConfig.murdererColor end
+    if role == "Sheriff"  then return espConfig.sheriffColor  end
     return espConfig.innocentColor
 end
 
--- loop global de atualização do ESP a cada 0.2s (leve)
+
 local espElapsed = 0
 RunService.Heartbeat:Connect(function(dt)
     espElapsed = espElapsed + dt
     if espElapsed < 0.2 then return end
     espElapsed = 0
     if not espConfig.enabled then return end
+
     for i = #activeESP, 1, -1 do
         local e = activeESP[i]
+        -- remove entrada se o character saiu do jogo
         if not e.character or not e.character.Parent then
             if e.highlight and e.highlight.Parent then e.highlight:Destroy() end
             if e.tag       and e.tag.Parent       then e.tag:Destroy()       end
             table.remove(activeESP, i)
         else
-            local color = getRoleColor(e.player, e.character)
+            local color = getRoleColor(e.player.Name)
             e.highlight.OutlineColor = color
             e.label.TextColor3       = color
             e.label.Text             = e.player.Name
@@ -999,43 +1089,54 @@ RunService.Heartbeat:Connect(function(dt)
     end
 end)
 
+
 local function CleanupPlayer(plr)
-    if not plr or not plr.Character then return end
-    local hl = plr.Character:FindFirstChild("MoonHighlight")
-    if hl then hl:Destroy() end
-    local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
-    if hrp then
-        local tg = hrp:FindFirstChild("MoonTag")
-        if tg then tg:Destroy() end
-        hrp.LocalTransparencyModifier = 0
+    if not plr then return end
+    local char = plr.Character
+    if not char then return end
+    local holder = char:FindFirstChild("ESPHolder")
+    if holder then holder:Destroy() end
+    local head = char:FindFirstChild("Head")
+    if head then
+        local tag = head:FindFirstChild("MoonTag")
+        if tag then tag:Destroy() end
     end
 end
 
 local function ApplyESP(targetPlayer, character)
     if not character then return end
-    local root = character:WaitForChild("HumanoidRootPart", 3)
-    if not root then return end
 
-    -- remove instâncias antigas para evitar duplicatas
-    local existingHL  = character:FindFirstChild("MoonHighlight")
-    if existingHL  then existingHL:Destroy()  end
-    local existingTag = root:FindFirstChild("MoonTag")
-    if existingTag then existingTag:Destroy() end
+    local head = character:WaitForChild("Head", 5)
+    if not head then return end
 
+    
+    local oldHolder = character:FindFirstChild("ESPHolder")
+    if oldHolder then oldHolder:Destroy() end
+
+    local holder = Instance.new("Folder")
+    holder.Name   = "ESPHolder"
+    holder.Parent = character
+
+    
     local highlight = Instance.new("Highlight")
-    highlight.Name              = "MoonHighlight"
+    highlight.Name              = "ESPHighlight"
     highlight.Adornee           = character
     highlight.FillTransparency  = 1
     highlight.OutlineTransparency = 0
     highlight.DepthMode         = Enum.HighlightDepthMode.AlwaysOnTop
-    highlight.Parent            = character
+    highlight.OutlineColor      = getRoleColor(targetPlayer.Name)
+    highlight.Parent            = holder
+
+    
+    local oldTag = head:FindFirstChild("MoonTag")
+    if oldTag then oldTag:Destroy() end
 
     local tag = Instance.new("BillboardGui")
     tag.Name        = "MoonTag"
-    tag.Size        = UDim2.new(0, 200, 0, 50)
+    tag.Size        = UDim2.new(0, 200, 0, 40)
     tag.AlwaysOnTop = true
-    tag.StudsOffset = Vector3.new(0, 3.5, 0)
-    tag.Parent      = root
+    tag.StudsOffset = Vector3.new(0, 1.5, 0)
+    tag.Parent      = head
 
     local label = Instance.new("TextLabel")
     label.Name                   = "Label"
@@ -1046,6 +1147,7 @@ local function ApplyESP(targetPlayer, character)
     label.TextSize               = espConfig.nameSize
     label.TextStrokeTransparency = 0
     label.TextScaled             = false
+    label.TextColor3             = getRoleColor(targetPlayer.Name)
     label.Parent                 = tag
 
     table.insert(activeESP, {
@@ -1060,23 +1162,27 @@ end
 local function CreateESP(targetPlayer)
     if targetPlayer == LP then return end
     if targetPlayer.Character then
-        ApplyESP(targetPlayer, targetPlayer.Character)
+        task.spawn(ApplyESP, targetPlayer, targetPlayer.Character)
     end
-    local ref  = { player = targetPlayer }
-    ref.conn   = targetPlayer.CharacterAdded:Connect(function(char)
-        ApplyESP(targetPlayer, char)
+    local ref = { player = targetPlayer }
+    ref.conn  = targetPlayer.CharacterAdded:Connect(function(char)
+        task.wait(0.15)  -- aguarda partes do character carregarem
+        task.spawn(ApplyESP, targetPlayer, char)
     end)
     table.insert(espConnections, ref)
 end
 
 local function enablePlayerESP()
+    -- reset completo se já estava ligado
     if espRunning then
         espRunning        = false
         espConfig.enabled = false
+        stopRolePoll()
     end
     espRunning        = true
     espConfig.enabled = true
 
+    
     for _, conn in pairs(espConnections) do
         if conn.conn and conn.conn.Connected then conn.conn:Disconnect() end
     end
@@ -1087,7 +1193,7 @@ local function enablePlayerESP()
     espConnections = {}
     activeESP      = {}
 
-    startRoleDetector()
+    startRolePoll()
 
     for _, plr in pairs(Players:GetPlayers()) do CreateESP(plr) end
 
@@ -1097,7 +1203,6 @@ local function enablePlayerESP()
 
     local removingRef = {}
     removingRef.conn  = Players.PlayerRemoving:Connect(function(plr)
-        roleCache[plr] = nil
         for i = #activeESP, 1, -1 do
             if activeESP[i].player == plr then
                 if activeESP[i].highlight and activeESP[i].highlight.Parent then
@@ -1122,9 +1227,9 @@ local function enablePlayerESP()
 end
 
 local function disablePlayerESP()
-    espRunning          = false
-    espConfig.enabled   = false
-    roleDetectorStarted = false
+    espRunning        = false
+    espConfig.enabled = false
+    stopRolePoll()
 
     for _, conn in pairs(espConnections) do
         if conn.conn and conn.conn.Connected then conn.conn:Disconnect() end
@@ -1135,12 +1240,14 @@ local function disablePlayerESP()
     end
     espConnections = {}
     activeESP      = {}
-    roleCache      = {}
 
     for _, plr in pairs(Players:GetPlayers()) do CleanupPlayer(plr) end
 end
 
 -- ==================== ESP ARMA ====================
+
+local gunESPConnection  = nil
+local coinESPConnection = nil
 
 local function applyGunESP(v)
     if v.Name ~= "GunDrop" or not v:IsA("BasePart") then return end
@@ -1490,6 +1597,385 @@ local function stopAntiFling()
     end
 end
 
+-- ==================== KNIFE AURA ====================
+
+local auraEnabled         = false
+local auraDistance        = 7.1
+local legitMode           = false
+local guardarFaca         = false
+local knifeEquippedByAura = false
+local auraConnection      = nil
+local lastFireTime        = 0
+local FIRE_COOLDOWN       = 0.15
+local lastAuraTarget      = nil
+local lastAuraTargetAlive = true
+
+local function getRole()
+    local char = LP.Character
+    local bp   = LP:FindFirstChild("Backpack")
+    return (char and char:FindFirstChild("Knife")) or (bp and bp:FindFirstChild("Knife"))
+end
+
+local function knifeIsEquipped()
+    local char = LP.Character
+    if not char then return nil end
+    return char:FindFirstChild("Knife")
+end
+
+local function equipKnifeAura()
+    local char = LP.Character
+    if not char then return false end
+    local bp = LP:FindFirstChild("Backpack")
+    if not bp then return false end
+    local knife = bp:FindFirstChild("Knife")
+    if knife then
+        knife.Parent = char
+        knifeEquippedByAura = true
+        return true
+    end
+    return false
+end
+
+local function unequipKnifeAura()
+    local char = LP.Character
+    if not char then return end
+    local knife = char:FindFirstChild("Knife")
+    if not knife then knifeEquippedByAura = false; return end
+    local bp = LP:FindFirstChild("Backpack")
+    if not bp then return end
+    knife.Parent = bp
+    knifeEquippedByAura = false
+end
+
+local function isAlive(player)
+    if not player or not player.Character then return false end
+    local hum = player.Character:FindFirstChild("Humanoid")
+    return hum ~= nil and hum.Health > 0
+end
+
+local function getKnifeRemote(knife)
+    if not knife then return nil end
+    return knife:FindFirstChild("HandleTouched", true)
+end
+
+local function fireSlash(knife, targetHRP)
+    local now = tick()
+    if now - lastFireTime < FIRE_COOLDOWN then return end
+    lastFireTime = now
+    task.spawn(function()
+        local originalCFrame = targetHRP and targetHRP.CFrame
+        local handle = knife:FindFirstChild("Handle")
+        if handle and targetHRP and targetHRP.Parent then
+            pcall(function() targetHRP.CFrame = handle.CFrame end)
+        end
+        local handleTouched = getKnifeRemote(knife)
+        if handleTouched then
+            pcall(function() handleTouched:FireServer(targetHRP) end)
+        end
+        local events = knife:FindFirstChild("Events")
+        if events then
+            local ks = events:FindFirstChild("KnifeStabbed")
+            if ks then pcall(function() ks:FireServer(targetHRP) end) end
+        end
+        RunService.RenderStepped:Wait()
+        if targetHRP and targetHRP.Parent and originalCFrame then
+            pcall(function() targetHRP.CFrame = originalCFrame end)
+        end
+    end)
+end
+
+local function findNearestAura()
+    local char = LP.Character
+    local myHRP = char and char:FindFirstChild("HumanoidRootPart")
+    if not myHRP then return nil, nil end
+    local closest, closestDist, closestHRP = nil, auraDistance, nil
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LP and p.Character then
+            local otherHRP = p.Character:FindFirstChild("HumanoidRootPart")
+            local humanoid = p.Character:FindFirstChild("Humanoid")
+            local pBp = p:FindFirstChild("Backpack")
+            local hasKnife = p.Character:FindFirstChild("Knife") or (pBp and pBp:FindFirstChild("Knife"))
+            if otherHRP and humanoid and humanoid.Health > 0 and not hasKnife then
+                local d = (myHRP.Position - otherHRP.Position).Magnitude
+                if d < closestDist then
+                    closest = p; closestDist = d; closestHRP = otherHRP
+                end
+            end
+        end
+    end
+    return closest, closestHRP
+end
+
+local function onAuraHeartbeat()
+    if not auraEnabled then return end
+    local char = LP.Character
+    if not char then return end
+    local humLocal = char:FindFirstChild("Humanoid")
+    if not humLocal or humLocal.Health <= 0 then return end
+    if not getRole() then return end
+
+    if lastAuraTarget then
+        local aliveNow = isAlive(lastAuraTarget)
+        if lastAuraTargetAlive and not aliveNow then
+            -- alvo morreu: desequipa só se guardarFaca estiver OFF
+            if not guardarFaca then
+                unequipKnifeAura()
+            else
+                knifeEquippedByAura = false -- reseta flag sem desequipar
+            end
+            lastAuraTarget      = nil
+            lastAuraTargetAlive = true
+        else
+            lastAuraTargetAlive = aliveNow
+        end
+    end
+
+    local target, targetHRP = findNearestAura()
+    if target and targetHRP then
+        if lastAuraTarget ~= target then
+            lastAuraTarget      = target
+            lastAuraTargetAlive = true
+        end
+        local knife = knifeIsEquipped()
+        if not knife then
+            if equipKnifeAura() then knife = knifeIsEquipped() end
+        end
+        if knife then
+            fireSlash(knife, targetHRP)
+            if legitMode then
+                lastAuraTarget      = nil
+                lastAuraTargetAlive = true
+                return
+            end
+        end
+    else
+        -- sem alvo no range: desequipa só se guardarFaca estiver OFF
+        if knifeEquippedByAura and not guardarFaca then
+            unequipKnifeAura()
+        end
+    end
+end
+
+local function setAura(state)
+    auraEnabled = state
+    if state then
+        if not auraConnection then
+            auraConnection = RunService.Heartbeat:Connect(onAuraHeartbeat)
+        end
+    else
+        if auraConnection then auraConnection:Disconnect(); auraConnection = nil end
+        unequipKnifeAura()
+        lastAuraTarget      = nil
+        lastAuraTargetAlive = true
+    end
+end
+
+-- ==================== GHOST MODE ====================
+
+local ghostActive     = false
+local invisOrigTransp = {}
+local ghostRefContainer = nil
+local ghostRefStroke    = nil
+local ghostRefLabel     = nil
+
+local function ghostAtualizarVisual()
+    if not ghostRefContainer or not ghostRefContainer.Parent then return end
+    if ghostActive then
+        ghostRefContainer.BackgroundColor3       = Color3.fromRGB(100, 20, 200)
+        ghostRefContainer.BackgroundTransparency = 0.05
+        ghostRefStroke.Color                     = Color3.fromRGB(200, 100, 255)
+        ghostRefLabel.Text                       = "ATIVO"
+        ghostRefLabel.TextColor3                 = Color3.fromRGB(0, 255, 100)
+    else
+        ghostRefContainer.BackgroundColor3       = Color3.fromRGB(30, 30, 30)
+        ghostRefContainer.BackgroundTransparency = 0.3
+        ghostRefStroke.Color                     = Color3.fromRGB(140, 50, 255)
+        ghostRefLabel.Text                       = "GHOST"
+        ghostRefLabel.TextColor3                 = Color3.fromRGB(140, 50, 255)
+    end
+end
+
+local function ghostApplyTransparency(char, makeInvis)
+    if not char then return end
+    if makeInvis then
+        invisOrigTransp = {}
+        for _, v in pairs(char:GetDescendants()) do
+            if v:IsA("BasePart") then
+                invisOrigTransp[v] = v.Transparency
+                if v.Transparency < 0.5 then v.Transparency = 0.5 end
+            end
+        end
+    else
+        for _, v in pairs(char:GetDescendants()) do
+            if v:IsA("BasePart") then
+                local orig = invisOrigTransp[v]
+                v.Transparency = orig ~= nil and orig or 0
+            end
+        end
+        invisOrigTransp = {}
+    end
+end
+
+local function toggleGhost()
+    ghostActive = not ghostActive
+    ghostApplyTransparency(LP.Character, ghostActive)
+    ghostAtualizarVisual()
+end
+
+-- Heartbeat do ghost (técnica do Nexus)
+RunService.Heartbeat:Connect(function()
+    if not ghostActive then return end
+    local char = LP.Character
+    if not char then return end
+    local root = char:FindFirstChild("HumanoidRootPart")
+    local hum  = char:FindFirstChild("Humanoid")
+    if not root or not hum then return end
+    local oldCF        = root.CFrame
+    local oldCamOffset = hum.CameraOffset
+    root.CFrame      = oldCF * CFrame.new(0, -200000, 0)
+    hum.CameraOffset = (oldCF * CFrame.new(0, -200000, 0)):ToObjectSpace(CFrame.new(oldCF.Position)).Position
+    task.spawn(function()
+        RunService.RenderStepped:Wait()
+        if root and root.Parent then
+            root.CFrame      = oldCF
+            hum.CameraOffset = oldCamOffset
+        end
+    end)
+end)
+
+local function CriarGhostBotao()
+    if ghostBotaoTela then return end
+    local sg = Instance.new("ScreenGui")
+    sg.Name           = "GhostModeBtn"
+    sg.ResetOnSpawn   = false
+    sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    sg.IgnoreGuiInset = true
+
+    local container = Instance.new("Frame")
+    container.Name                   = "GhostContainer"
+    container.Size                   = UDim2.new(0, 80, 0, 80)
+    container.Position               = ghostBotaoPos
+    container.BackgroundColor3       = Color3.fromRGB(30, 30, 30)
+    container.BackgroundTransparency = 0.3
+    container.BorderSizePixel        = 0
+    container.Parent                 = sg
+    Instance.new("UICorner", container).CornerRadius = UDim.new(0, 12)
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Color           = Color3.fromRGB(140, 50, 255)
+    stroke.Thickness       = 2
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    stroke.Parent          = container
+
+    local label = Instance.new("TextLabel")
+    label.Size                   = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text                   = "GHOST"
+    label.TextSize               = 16
+    label.Font                   = Enum.Font.GothamBold
+    label.TextXAlignment         = Enum.TextXAlignment.Center
+    label.TextYAlignment         = Enum.TextYAlignment.Center
+    label.TextColor3             = Color3.fromRGB(140, 50, 255)
+    label.ZIndex                 = 2
+    label.Parent                 = container
+
+    ghostRefContainer = container
+    ghostRefStroke    = stroke
+    ghostRefLabel     = label
+
+    -- Pulse animation
+    local guiViva = true
+    sg.Destroying:Connect(function()
+        guiViva           = false
+        ghostRefContainer = nil
+        ghostRefStroke    = nil
+        ghostRefLabel     = nil
+    end)
+    task.spawn(function()
+        while guiViva do
+            if not ghostActive then
+                local t1 = game:GetService("TweenService"):Create(stroke,
+                    TweenInfo.new(1, Enum.EasingStyle.Sine), {Transparency = 0.6})
+                t1:Play(); t1.Completed:Wait()
+                if not guiViva then break end
+                local t2 = game:GetService("TweenService"):Create(stroke,
+                    TweenInfo.new(1, Enum.EasingStyle.Sine), {Transparency = 0})
+                t2:Play(); t2.Completed:Wait()
+            else
+                stroke.Transparency = 0
+                task.wait(0.5)
+            end
+        end
+    end)
+
+    local btn = Instance.new("TextButton")
+    btn.Size                = UDim2.new(1, 0, 1, 0)
+    btn.BackgroundTransparency = 1
+    btn.Text                = ""
+    btn.AutoButtonColor     = false
+    btn.ZIndex              = 4
+    btn.Parent              = container
+
+    btn.InputBegan:Connect(function(input)
+        local isTouch = input.UserInputType == Enum.UserInputType.Touch
+        local isMouse = input.UserInputType == Enum.UserInputType.MouseButton1
+        if not (isTouch or isMouse) then return end
+
+        local startPos   = input.Position
+        local startFrame = container.Position
+        local moved      = false
+        local moveConn, endConn
+
+        moveConn = game:GetService("UserInputService").InputChanged:Connect(function(inp)
+            if inp.UserInputType ~= Enum.UserInputType.MouseMovement
+            and inp.UserInputType ~= Enum.UserInputType.Touch then return end
+            local delta = inp.Position - startPos
+            if not moved and (math.abs(delta.X) > 6 or math.abs(delta.Y) > 6) then
+                moved = true
+            end
+            if moved and ghostBotaoArrastavel then
+                container.Position = UDim2.new(
+                    startFrame.X.Scale, startFrame.X.Offset + delta.X,
+                    startFrame.Y.Scale, startFrame.Y.Offset + delta.Y)
+            end
+        end)
+
+        endConn = input.Changed:Connect(function()
+            if input.UserInputState ~= Enum.UserInputState.End then return end
+            moveConn:Disconnect(); endConn:Disconnect()
+            if moved and ghostBotaoArrastavel then
+                ghostBotaoPos = container.Position
+                salvarGhostPos(ghostBotaoPos)
+            elseif not moved then
+                toggleGhost()
+            end
+        end)
+    end)
+
+    sg.Parent     = game:GetService("CoreGui")
+    ghostBotaoTela = sg
+end
+
+local function RemoverGhostBotao()
+    if ghostBotaoTela then ghostBotaoTela:Destroy(); ghostBotaoTela = nil end
+end
+
+LP.CharacterAdded:Connect(function()
+    if ghostActive then
+        ghostActive = false
+        invisOrigTransp = {}
+        ghostAtualizarVisual()
+    end
+    
+    knifeEquippedByAura = false
+    lastFireTime        = 0
+    lastAuraTarget      = nil
+    lastAuraTargetAlive = true
+    if auraEnabled and not auraConnection then
+        auraConnection = RunService.Heartbeat:Connect(onAuraHeartbeat)
+    end
+end)
+
 -- ==================== SHERIFF TAB ====================
 do
     Tabs.Sheriff:AddParagraph({ Title = "Shot Configuration", Content = "" })
@@ -1670,6 +2156,36 @@ end
 
 -- ==================== MURDER TAB ====================
 do
+    Tabs.Murder:AddParagraph({ Title = "Knife Aura", Content = "" })
+
+    Tabs.Murder:AddToggle("KnifeAura", {
+        Title = "Knife Aura",
+        Description = "Automatically hit players near you with the knife",
+        Default = false,
+    })
+    Options.KnifeAura:OnChanged(function(v) setAura(v) end)
+
+    Tabs.Murder:AddSlider("KnifeAuraDist", {
+        Title = "Aura Distance",
+        Description = "Range in studs to auto-hit players",
+        Default = 7, Min = 1, Max = 50, Rounding = 0,
+        Callback = function(v) auraDistance = v end
+    })
+
+    Tabs.Murder:AddToggle("KnifeAuraLegit", {
+        Title = "Legit Mode",
+        Description = "Only attack one target at a time",
+        Default = false,
+    })
+    Options.KnifeAuraLegit:OnChanged(function(v) legitMode = v end)
+
+    Tabs.Murder:AddToggle("KnifeAuraGuardar", {
+        Title = "Guardar Faca",
+        Description = "Unequip knife after killing a target",
+        Default = false,
+    })
+    Options.KnifeAuraGuardar:OnChanged(function(v) guardarFaca = v end)
+
     Tabs.Murder:AddParagraph({ Title = "Hitbox Expander", Content = "" })
 
     Tabs.Murder:AddToggle("ExpandHitbox", {
@@ -1820,6 +2336,42 @@ do
     Options.NoClip:OnChanged(function(v)
         if v then startNoClip() else stopNoClip() end
     end)
+
+    Tabs.Player:AddParagraph({ Title = "Ghost Mode", Content = "" })
+
+    Tabs.Player:AddToggle("GhostMode", {
+        Title = "Ghost Mode",
+        Description = "Makes you invisible to other players on the server",
+        Default = false,
+    })
+    Options.GhostMode:OnChanged(function(v)
+        if v ~= ghostActive then toggleGhost() end
+    end)
+
+    Tabs.Player:AddKeybind("GhostHotkey", {
+        Title = "Ghost Mode Hotkey",
+        Description = "Hotkey to toggle ghost mode (PC only)",
+        Default = "H",
+        Callback = function() toggleGhost() end
+    })
+
+    Tabs.Player:AddParagraph({ Title = "Ghost Button", Content = "" })
+
+    Tabs.Player:AddToggle("ShowGhostButton", {
+        Title = "Show Ghost Button",
+        Description = "Display on-screen button to toggle ghost mode",
+        Default = false,
+    })
+    Options.ShowGhostButton:OnChanged(function(v)
+        if v then CriarGhostBotao() else RemoverGhostBotao() end
+    end)
+
+    Tabs.Player:AddToggle("GhostButtonDraggable", {
+        Title = "Draggable Ghost Button",
+        Description = "Enable to move the ghost button around",
+        Default = false,
+    })
+    Options.GhostButtonDraggable:OnChanged(function(v) ghostBotaoArrastavel = v end)
 end
 
 -- ==================== TELEPORT TAB ====================
