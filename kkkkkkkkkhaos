@@ -443,7 +443,7 @@ local function CalcularPredicaoRapida(alvoHRP, alvoAim, minhaPos)
             local headAboveGround = headOffset.Y + 3
             local gravCorrection  = gravity * repLag * totalTime
 
-            
+            -- estima tempo de pouso (só na fase de queda)
             local tPouso = 999
             if velY < 0 then
                 local a_eq = 0.5 * gravity
@@ -461,28 +461,28 @@ local function CalcularPredicaoRapida(alvoHRP, alvoAim, minhaPos)
             end
 
             if isRising then
-                
+                -- subida: trajetória de arco completa
                 deltaY = (velY * totalTime) - (0.5 * gravity * totalTime * totalTime) - gravCorrection
             elseif isApex then
-                
+                -- ápice: velocidade Y ~0, só gravidade durante o voo da bala
                 deltaY = -(0.5 * gravity * totalTime * totalTime) - gravCorrection
             elseif isFalling then
                 if tPouso < totalTime then
-                
+                    -- pousa antes da bala chegar: mira na altura do chão + cabeça
                     if rayResult then
                         deltaY = (rayResult.Position.Y + headAboveGround) - alvoPos.Y
                     else
                         deltaY = (velY * totalTime) - (0.5 * gravity * totalTime * totalTime) - gravCorrection
                     end
                 else
-                    
+                    -- ainda no ar quando a bala chegar
                     deltaY = (velY * totalTime) - (0.5 * gravity * totalTime * totalTime) - gravCorrection
                 end
             end
 
             deltaY = deltaY * sheriffConfig.VerticalMultiplier
 
-            
+            -- queda extra por distância longa (original)
             local horizDistFinal2 = Vector2.new(alvoPos.X - minhaPos.X, alvoPos.Z - minhaPos.Z).Magnitude
             if horizDistFinal2 > 80 then
                 deltaY = deltaY - (horizDistFinal2 - 80) * 0.008 * sheriffConfig.VerticalDistanceScale
@@ -490,7 +490,7 @@ local function CalcularPredicaoRapida(alvoHRP, alvoAim, minhaPos)
         end
     end
 
-    
+    -- sanity check: limita o deslocamento total da predição
     local velMag2       = Vector2.new(alvoVelRaw.X, alvoVelRaw.Z).Magnitude
     local horizDistFin  = Vector2.new(alvoPos.X - minhaPos.X, alvoPos.Z - minhaPos.Z).Magnitude
     local tEst          = horizDistFin / BULLET_SPEED
@@ -810,10 +810,11 @@ local function createHitboxForPlayer(player)
     if not hrp then return end
     local pName = player.Name
 
-    
+    -- Salva o tamanho original APENAS se ainda não foi expandido
+    -- evita salvar um tamanho já modificado pelo hitbox em caso de re-aplicação
     if not originalSizes[pName] then
         local sz = hrp.Size
-       
+        -- tamanho padrão do HRP no MM2 é ~2,2,1 — se já estiver expandido, usa o padrão
         if sz.X <= 3 and sz.Y <= 5 and sz.Z <= 3 then
             originalSizes[pName] = sz
         else
@@ -852,7 +853,7 @@ local function updateAllHitboxes()
                 local newSize = Vector3.new(hitboxConfig.size, hitboxConfig.size, hitboxConfig.size)
                 if hrp.Size ~= newSize then
                     hrp.Size = newSize
-                    hrp.Transparency = 1  
+                    hrp.Transparency = 1  -- totalmente invisível: não entra no bounding box do ESP Highlight
                     hrp.Material = Enum.Material.ForceField
                     hrp.CanCollide = false
                     for _, part in pairs(player.Character:GetDescendants()) do
@@ -936,7 +937,7 @@ local function stopHitbox()
     end
     hitboxConnections = {}
 
-    
+    -- Restaura hitboxParts conhecidos
     for pName, hrp in pairs(hitboxParts) do
         if hrp and hrp.Parent then
             pcall(function()
@@ -956,7 +957,8 @@ local function stopHitbox()
         end
     end
 
-   
+    -- Varredura completa: garante que NENHUM player fique com hitbox expandido
+    -- cobre casos de players que não estavam em hitboxParts (entraram depois, respawnaram, etc.)
     for _, player in ipairs(Players:GetPlayers()) do
         if player ~= LP and player.Character then
             local hrp = player.Character:FindFirstChild("HumanoidRootPart")
@@ -994,9 +996,9 @@ end
 local espConnections = {}
 local activeESP      = {}
 local espRunning     = false
-local roleCache      = {}  
+local roleCache      = {}  -- [playerName] = "Murderer" | "Sheriff" | "Innocent" | "Lobby"
 
-
+-- RemoteFunction do MM2 (mesmo que o Nexus usa)
 local playerDataRemote = nil
 local function getPlayerDataRemote()
     if playerDataRemote then return playerDataRemote end
@@ -1007,6 +1009,8 @@ local function getPlayerDataRemote()
     return playerDataRemote
 end
 
+-- Atualiza roleCache via InvokeServer a cada 0.25s (igual ao Nexus)
+-- Usa plrData.Dead para detectar morte com precisão do servidor
 local rolePollThread = nil
 
 local function startRolePoll()
@@ -1044,7 +1048,10 @@ local function stopRolePoll()
     roleCache = {}
 end
 
-
+-- Retorna a cor correta para o player
+-- Prioridade:
+-- 1. Checagem ao vivo de Backpack/Character (detecta quem pegou a arma caída)
+-- 2. roleCache do servidor (para murderer e mortos)
 local function getRoleColor(playerName)
     local plr = Players:FindFirstChild(playerName)
     if plr then
@@ -1056,14 +1063,14 @@ local function getRoleColor(playerName)
         if hasKnife then return espConfig.murdererColor end
         if hasGun   then return espConfig.sheriffColor  end
     end
-    
+    -- fallback: roleCache do servidor (cobre murderer sem faca visível e mortos)
     local role = roleCache[playerName]
     if role == "Murderer" then return espConfig.murdererColor end
     if role == "Sheriff"  then return espConfig.sheriffColor  end
     return espConfig.innocentColor
 end
 
-
+-- Loop global de atualização visual do ESP a cada 0.2s
 local espElapsed = 0
 RunService.Heartbeat:Connect(function(dt)
     espElapsed = espElapsed + dt
@@ -1089,7 +1096,7 @@ RunService.Heartbeat:Connect(function(dt)
     end
 end)
 
-
+-- Limpa instâncias de ESP de um player
 local function CleanupPlayer(plr)
     if not plr then return end
     local char = plr.Character
@@ -1109,7 +1116,7 @@ local function ApplyESP(targetPlayer, character)
     local head = character:WaitForChild("Head", 5)
     if not head then return end
 
-    
+    -- Pasta isolada para todos os objetos do ESP deste player
     local oldHolder = character:FindFirstChild("ESPHolder")
     if oldHolder then oldHolder:Destroy() end
 
@@ -1117,7 +1124,9 @@ local function ApplyESP(targetPlayer, character)
     holder.Name   = "ESPHolder"
     holder.Parent = character
 
-    
+    -- Highlight no character inteiro (corpo completo)
+    -- O HRP expandido pelo hitbox não interfere porque setamos
+    -- Transparency = 1 nele, tornando-o invisível para o bounding box do Highlight
     local highlight = Instance.new("Highlight")
     highlight.Name              = "ESPHighlight"
     highlight.Adornee           = character
@@ -1127,7 +1136,7 @@ local function ApplyESP(targetPlayer, character)
     highlight.OutlineColor      = getRoleColor(targetPlayer.Name)
     highlight.Parent            = holder
 
-    
+    -- BillboardGui no Head — posição estável
     local oldTag = head:FindFirstChild("MoonTag")
     if oldTag then oldTag:Destroy() end
 
@@ -1182,7 +1191,7 @@ local function enablePlayerESP()
     espRunning        = true
     espConfig.enabled = true
 
-    
+    -- limpa conexões e instâncias anteriores
     for _, conn in pairs(espConnections) do
         if conn.conn and conn.conn.Connected then conn.conn:Disconnect() end
     end
@@ -1243,6 +1252,8 @@ local function disablePlayerESP()
 
     for _, plr in pairs(Players:GetPlayers()) do CleanupPlayer(plr) end
 end
+
+-- ==================== ESP ARMA ====================
 
 -- ==================== ESP ARMA ====================
 
@@ -1717,12 +1728,12 @@ local function onAuraHeartbeat()
     if lastAuraTarget then
         local aliveNow = isAlive(lastAuraTarget)
         if lastAuraTargetAlive and not aliveNow then
-            -- alvo morreu: desequipa só se guardarFaca estiver OFF
+            -- alvo morreu
             if not guardarFaca then
+                -- guardarFaca OFF: desequipa a faca
                 unequipKnifeAura()
-            else
-                knifeEquippedByAura = false -- reseta flag sem desequipar
             end
+            -- guardarFaca ON: não faz nada, faca fica no char
             lastAuraTarget      = nil
             lastAuraTargetAlive = true
         else
@@ -1764,7 +1775,12 @@ local function setAura(state)
         end
     else
         if auraConnection then auraConnection:Disconnect(); auraConnection = nil end
-        unequipKnifeAura()
+        -- só desequipa ao desligar a aura se guardarFaca estiver OFF
+        if not guardarFaca then
+            unequipKnifeAura()
+        else
+            knifeEquippedByAura = false
+        end
         lastAuraTarget      = nil
         lastAuraTargetAlive = true
     end
@@ -1966,7 +1982,7 @@ LP.CharacterAdded:Connect(function()
         invisOrigTransp = {}
         ghostAtualizarVisual()
     end
-    
+    -- reconecta knife aura ao respawn
     knifeEquippedByAura = false
     lastFireTime        = 0
     lastAuraTarget      = nil
