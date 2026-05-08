@@ -1,6 +1,12 @@
+-- ================================================================
+--  KhaosHub | Sheriff Tab  (v2)
+--  Auto Shot: Float+Painel + Keybind PC
+--  Get Gun: Auto + Keybind PC
+--  Dropdown flutuante real | Slider com input manual
+-- ================================================================
 
 do
-    local pg = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+    local pg = pcall(function() return game:GetService("CoreGui") end) and game:GetService("CoreGui") or game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
     local old = pg:FindFirstChild("KhaosHub")
     if old then old:Destroy() end
 end
@@ -16,7 +22,11 @@ local LP         = Players.LocalPlayer
 local SG = Instance.new("ScreenGui")
 SG.IgnoreGuiInset=true; SG.ScreenInsets=Enum.ScreenInsets.DeviceSafeInsets
 SG.Name="KhaosHub"; SG.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
-SG.ResetOnSpawn=false; SG.Parent=LP:WaitForChild("PlayerGui")
+SG.ResetOnSpawn=false
+do
+    local ok,cg=pcall(function() return game:GetService("CoreGui") end)
+    SG.Parent = ok and cg or LP:WaitForChild("PlayerGui")
+end
 
 -- ToggleUI
 local TUI=Instance.new("ImageButton",SG)
@@ -129,7 +139,8 @@ local function makeTabBtn(name,icon,label,order)
     return btn
 end
 makeTabBtn("Sheriff","rbxassetid://10734975486","Sheriff",1)
-makeTabBtn("Settings","rbxassetid://10734963191","Settings",2)
+makeTabBtn("Visual","rbxassetid://10734952307","Visual",2)
+makeTabBtn("Settings","rbxassetid://10734950309","Settings",3)
 
 local Cont=Instance.new("Frame",Body)
 Cont.BorderSizePixel=0; Cont.Size=UDim2.new(1,-135,1,0)
@@ -216,7 +227,15 @@ local function makeToggleRow(parent,order,label,defaultOn,onChange)
     local row=makeRow(parent,order,44); makeLbl(row,label,11)
     local tf=makeToggle(row,nil,defaultOn)
     if onChange then tf.AttributeChanged:Connect(function(a) if a=="IsOn" then onChange(tf:GetAttribute("IsOn")) end end) end
-    return row,tf
+    local tiTF=TweenInfo.new(0.12,Enum.EasingStyle.Quart,Enum.EasingDirection.Out)
+    local function setToggle(v)
+        tf:SetAttribute("IsOn",v)
+        TS:Create(tf,tiTF,{BackgroundColor3=v and Color3.fromRGB(61,0,107) or Color3.fromRGB(17,17,17)}):Play()
+        local s=tf:FindFirstChildOfClass("UIStroke"); if s then s.Color=v and Color3.fromRGB(119,0,187) or Color3.fromRGB(34,0,56) end
+        local knob=tf:FindFirstChild("Knob")
+        if knob then TS:Create(knob,tiTF,{Position=v and UDim2.fromOffset(19,3) or UDim2.fromOffset(3,3),BackgroundColor3=v and Color3.fromRGB(187,119,255) or Color3.fromRGB(85,85,85)}):Play() end
+    end
+    return row,tf,setToggle
 end
 
 -- Keybind row (label + keybind btn + toggle)
@@ -245,7 +264,18 @@ local function makeKeybindRow(parent,order,label,defKey,defOn,onKey,onToggle)
     end
     kbBtn.MouseButton1Click:Connect(startListen)
     kbBtn.InputBegan:Connect(function(i) if i.UserInputType==Enum.UserInputType.Touch then startListen() end end)
-    return row,kbBtn,tf
+    local tiTF2=TweenInfo.new(0.12,Enum.EasingStyle.Quart,Enum.EasingDirection.Out)
+    local function setToggleKB(v)
+        tf:SetAttribute("IsOn",v)
+        TS:Create(tf,tiTF2,{BackgroundColor3=v and Color3.fromRGB(61,0,107) or Color3.fromRGB(17,17,17)}):Play()
+        local s=tf:FindFirstChildOfClass("UIStroke"); if s then s.Color=v and Color3.fromRGB(119,0,187) or Color3.fromRGB(34,0,56) end
+        local knob=tf:FindFirstChild("Knob")
+        if knob then TS:Create(knob,tiTF2,{Position=v and UDim2.fromOffset(19,3) or UDim2.fromOffset(3,3),BackgroundColor3=v and Color3.fromRGB(187,119,255) or Color3.fromRGB(85,85,85)}):Play() end
+    end
+    local function setKeyBtn(keyCode)
+        kbBtn.Text=keyCode.Name:sub(1,6); kbBtn.TextColor3=Color3.fromRGB(153,68,221)
+    end
+    return row,kbBtn,tf,setToggleKB,setKeyBtn
 end
 
 -- Slider row com input manual
@@ -307,7 +337,11 @@ local function makeSliderRow(parent,order,label,minV,maxV,defaultV,onChange)
     end)
     valLbl.MouseEnter:Connect(function() TS:Create(valLbl,TweenInfo.new(0.1),{TextColor3=Color3.fromRGB(204,136,255)}):Play() end)
     valLbl.MouseLeave:Connect(function() TS:Create(valLbl,TweenInfo.new(0.1),{TextColor3=Color3.fromRGB(154,69,222)}):Play() end)
-    return row
+    local function setSlider(v)
+        v=math.clamp(isInt and math.floor(v+0.5) or (math.floor(v*100+0.5)/100),minV,maxV)
+        applyPct((v-minV)/(maxV-minV))
+    end
+    return row,setSlider
 end
 
 -- Dropdown row (painel flutuante real)
@@ -481,6 +515,15 @@ local _shpl=Instance.new("UIListLayout",SheriffPage); _shpl.Padding=UDim.new(0,8
 local _shpp=Instance.new("UIPadding",SheriffPage)
 _shpp.PaddingTop=UDim.new(0,8); _shpp.PaddingRight=UDim.new(0,7); _shpp.PaddingLeft=UDim.new(0,7); _shpp.PaddingBottom=UDim.new(0,8)
 
+local VisualPage=Instance.new("ScrollingFrame",Cont)
+VisualPage.Visible=false; VisualPage.BorderSizePixel=0; VisualPage.CanvasSize=UDim2.new(0,0,0,0)
+VisualPage.Name="VisualPage"; VisualPage.AutomaticCanvasSize=Enum.AutomaticSize.Y
+VisualPage.Size=UDim2.new(1,0,1,0); VisualPage.ScrollBarImageColor3=Color3.fromRGB(62,0,108)
+VisualPage.ScrollBarThickness=3; VisualPage.BackgroundTransparency=1
+local _vpl=Instance.new("UIListLayout",VisualPage); _vpl.Padding=UDim.new(0,8); _vpl.SortOrder=Enum.SortOrder.LayoutOrder
+local _vpp=Instance.new("UIPadding",VisualPage)
+_vpp.PaddingTop=UDim.new(0,8); _vpp.PaddingRight=UDim.new(0,7); _vpp.PaddingLeft=UDim.new(0,7); _vpp.PaddingBottom=UDim.new(0,8)
+
 local SettingsPage=Instance.new("ScrollingFrame",Cont)
 SettingsPage.Visible=false; SettingsPage.BorderSizePixel=0; SettingsPage.CanvasSize=UDim2.new(0,0,0,0)
 SettingsPage.Name="SettingsPage"; SettingsPage.AutomaticCanvasSize=Enum.AutomaticSize.Y
@@ -489,260 +532,24 @@ SettingsPage.ScrollBarThickness=3; SettingsPage.BackgroundTransparency=1
 local _spl2=Instance.new("UIListLayout",SettingsPage); _spl2.Padding=UDim.new(0,8); _spl2.SortOrder=Enum.SortOrder.LayoutOrder
 local _spp2=Instance.new("UIPadding",SettingsPage)
 _spp2.PaddingTop=UDim.new(0,8); _spp2.PaddingRight=UDim.new(0,7); _spp2.PaddingLeft=UDim.new(0,7); _spp2.PaddingBottom=UDim.new(0,8)
--- ================================================================
---  SISTEMA DE CONFIG (writefile/readfile do executor)
--- ================================================================
-local CONFIG_DIR  = "KhaosHub/"
-local CONFIG_EXT  = ".json"
-local MAX_SLOTS   = 8
-pcall(function() if not isfolder(CONFIG_DIR) then makefolder(CONFIG_DIR) end end)
-
-local function serializeConfig()
-    return game:GetService("HttpService"):JSONEncode({
-        PingPrediction       = sheriffConfig.PingPrediction,
-        PingSensitivity      = sheriffConfig.PingSensitivity,
-        JumpPrediction       = sheriffConfig.JumpPrediction,
-        HorizontalMultiplier = sheriffConfig.HorizontalMultiplier,
-        VerticalMultiplier   = sheriffConfig.VerticalMultiplier,
-        MaxPredictionDistance= sheriffConfig.MaxPredictionDistance,
-        VerticalDistanceScale= sheriffConfig.VerticalDistanceScale,
-        LeadTime             = sheriffConfig.LeadTime,
-        XMultiplier          = sheriffConfig.XMultiplier,
-        ZMultiplier          = sheriffConfig.ZMultiplier,
-        UnequipAfterShot     = sheriffConfig.UnequipAfterShot,
-        wallCheck            = autoShotConfig.wallCheck,
-        delayTiro            = delayTiro,
-        delayHolster         = delayHolster,
-        BULLET_SPEED         = BULLET_SPEED,
-        autoShotKeyName      = autoShotKey.Name,
-        getGunKeyName        = getGunKey.Name,
-        autoShotKeyEnabled   = autoShotKeyEnabled,
-        getGunKeyEnabled     = getGunKeyEnabled,
-    })
-end
-
-local function applyConfig(t)
-    if not t then return end
-    if t.PingPrediction~=nil        then sheriffConfig.PingPrediction=t.PingPrediction end
-    if t.PingSensitivity            then sheriffConfig.PingSensitivity=t.PingSensitivity end
-    if t.JumpPrediction~=nil        then sheriffConfig.JumpPrediction=t.JumpPrediction end
-    if t.HorizontalMultiplier       then sheriffConfig.HorizontalMultiplier=t.HorizontalMultiplier end
-    if t.VerticalMultiplier         then sheriffConfig.VerticalMultiplier=t.VerticalMultiplier end
-    if t.MaxPredictionDistance      then sheriffConfig.MaxPredictionDistance=t.MaxPredictionDistance end
-    if t.VerticalDistanceScale      then sheriffConfig.VerticalDistanceScale=t.VerticalDistanceScale end
-    if t.LeadTime                   then sheriffConfig.LeadTime=t.LeadTime end
-    if t.XMultiplier                then sheriffConfig.XMultiplier=t.XMultiplier end
-    if t.ZMultiplier                then sheriffConfig.ZMultiplier=t.ZMultiplier end
-    if t.UnequipAfterShot~=nil      then sheriffConfig.UnequipAfterShot=t.UnequipAfterShot end
-    if t.wallCheck~=nil             then autoShotConfig.wallCheck=t.wallCheck end
-    if t.delayTiro                  then delayTiro=t.delayTiro end
-    if t.delayHolster               then delayHolster=t.delayHolster end
-    if t.BULLET_SPEED               then BULLET_SPEED=t.BULLET_SPEED end
-    if t.autoShotKeyEnabled~=nil    then autoShotKeyEnabled=t.autoShotKeyEnabled end
-    if t.getGunKeyEnabled~=nil      then getGunKeyEnabled=t.getGunKeyEnabled end
-    if t.autoShotKeyName then pcall(function() autoShotKey=Enum.KeyCode[t.autoShotKeyName] end) end
-    if t.getGunKeyName   then pcall(function() getGunKey  =Enum.KeyCode[t.getGunKeyName]   end) end
-end
-
-local function saveConfig(slotName)
-    local ok,err=pcall(function() writefile(CONFIG_DIR..slotName..CONFIG_EXT, serializeConfig()) end)
-    return ok
-end
-
-local function loadConfig(slotName)
-    local ok,data=pcall(function() return readfile(CONFIG_DIR..slotName..CONFIG_EXT) end)
-    if not ok or not data then return false end
-    local ok2,t=pcall(function() return game:GetService("HttpService"):JSONDecode(data) end)
-    if not ok2 or not t then return false end
-    applyConfig(t); return true
-end
-
-local function deleteConfig(slotName)
-    pcall(function() delfile(CONFIG_DIR..slotName..CONFIG_EXT) end)
-end
-
-local function listConfigs()
-    local list={}
-    local ok,files=pcall(function() return listfiles(CONFIG_DIR) end)
-    if ok and files then
-        for _,f in ipairs(files) do
-            local name=f:match("([^/\\]+)%.json$")
-            if name then list[#list+1]=name end
-        end
-    end
-    return list
-end
 
 -- ================================================================
---  SETTINGS PAGE — UI FUNCIONAL
+--  ESTADO DO SCRIPT  (declarado aqui para que Settings possa usar)
 -- ================================================================
-
--- Categoria: Configs (save/load/delete)
-local _,cfgItems=makeCat(SettingsPage,"CfgCat","Configs",1,"rbxassetid://10709769406") -- award/star
-
--- Nome do slot (TextBox)
-do
-    local row=makeRow(cfgItems,1,44); makeLbl(row,"Config Name",11)
-    local inp=Instance.new("TextBox",row); inp.BorderSizePixel=0; inp.TextSize=11
-    inp.TextColor3=Color3.fromRGB(181,141,221); inp.BackgroundColor3=Color3.fromRGB(11,0,19)
-    inp.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
-    inp.PlaceholderText="slot name..."; inp.PlaceholderColor3=Color3.fromRGB(52,52,52)
-    inp.ClearTextOnFocus=false; inp.Text="default"
-    inp.Size=UDim2.new(0,110,0,26); inp.Position=UDim2.new(1,-120,0.5,-13)
-    inp.Name="SlotNameInp"; corner(inp,5); mkS(inp,Color3.fromRGB(51,0,91))
-    -- referência global para outros botões lerem
-    cfgItems:SetAttribute("SlotInpName","SlotNameInp")
-end
-
--- Botões Save / Load / Delete numa linha só
-do
-    local row=makeRow(cfgItems,2,44); makeLbl(row,"",11)
-    local function statusFlash(btn,msg,col)
-        local orig=btn.Text; btn.Text=msg; btn.TextColor3=col or Color3.fromRGB(100,255,150)
-        task.delay(1.8,function() if btn and btn.Parent then btn.Text=orig; btn.TextColor3=Color3.fromRGB(154,69,222) end end)
-    end
-    local function getSlotName()
-        local inp=cfgItems:FindFirstChild("SlotNameInp",true)
-        local t=inp and inp.Text or "default"
-        return t=="" and "default" or t
-    end
-
-    local saveBtn=mkBtn(row,"💾 Save","SaveCfgBtn",UDim2.new(0,11,0.5,-11),60,22)
-    saveBtn.TextSize=9
-    saveBtn.MouseButton1Click:Connect(function()
-        local ok=saveConfig(getSlotName())
-        statusFlash(saveBtn,ok and "Saved!" or "Erro",ok and Color3.fromRGB(100,255,150) or Color3.fromRGB(255,80,80))
-    end)
-
-    local loadBtn=mkBtn(row,"📂 Load","LoadCfgBtn",UDim2.new(0,77,0.5,-11),60,22)
-    loadBtn.TextSize=9
-    loadBtn.MouseButton1Click:Connect(function()
-        local ok=loadConfig(getSlotName())
-        statusFlash(loadBtn,ok and "Loaded!" or "Erro",ok and Color3.fromRGB(100,255,150) or Color3.fromRGB(255,80,80))
-    end)
-
-    local delBtn=mkBtn(row,"🗑 Del","DelCfgBtn",UDim2.new(0,143,0.5,-11),54,22)
-    delBtn.TextSize=9; delBtn.TextColor3=Color3.fromRGB(220,80,80); delBtn.BackgroundColor3=Color3.fromRGB(27,0,0)
-    mkS(delBtn,Color3.fromRGB(75,0,0))
-    delBtn.MouseButton1Click:Connect(function()
-        deleteConfig(getSlotName()); statusFlash(delBtn,"Done!",Color3.fromRGB(255,160,80))
-    end)
-end
-
--- Lista de configs salvas (scroll + clique para selecionar slot)
-do
-    local listRow=makeRow(cfgItems,3,80)
-    listRow.Size=UDim2.new(1,0,0,80)
-
-    local scroll=Instance.new("ScrollingFrame",listRow)
-    scroll.BorderSizePixel=0; scroll.CanvasSize=UDim2.new(0,0,0,0)
-    scroll.AutomaticCanvasSize=Enum.AutomaticSize.Y; scroll.ScrollBarThickness=3
-    scroll.ScrollBarImageColor3=Color3.fromRGB(62,0,108)
-    scroll.BackgroundColor3=Color3.fromRGB(8,0,14); scroll.Size=UDim2.new(1,-8,1,0)
-    scroll.Position=UDim2.new(0,4,0,4); corner(scroll,4); mkS(scroll,Color3.fromRGB(25,0,41))
-    local ll=Instance.new("UIListLayout",scroll); ll.SortOrder=Enum.SortOrder.LayoutOrder
-    local lp=Instance.new("UIPadding",scroll); lp.PaddingTop=UDim.new(0,4); lp.PaddingBottom=UDim.new(0,4)
-                                               lp.PaddingLeft=UDim.new(0,4); lp.PaddingRight=UDim.new(0,4)
-
-    local function refreshList()
-        for _,c in ipairs(scroll:GetChildren()) do
-            if c:IsA("TextButton") then c:Destroy() end end
-        local configs=listConfigs()
-        if #configs==0 then
-            local lbl=Instance.new("TextLabel",scroll); lbl.Size=UDim2.new(1,0,0,22)
-            lbl.BackgroundTransparency=1; lbl.TextColor3=Color3.fromRGB(55,55,55)
-            lbl.TextSize=10; lbl.Font=Enum.Font.Gotham; lbl.Text="Nenhum config salvo"
-            lbl.TextXAlignment=Enum.TextXAlignment.Left; lbl.Name="Empty"; lbl.LayoutOrder=1; return
-        end
-        for i,name in ipairs(configs) do
-            local btn=Instance.new("TextButton",scroll)
-            btn.BorderSizePixel=0; btn.AutoButtonColor=false; btn.TextSize=10
-            btn.TextXAlignment=Enum.TextXAlignment.Left; btn.TextColor3=Color3.fromRGB(175,125,225)
-            btn.BackgroundColor3=Color3.fromRGB(14,0,22); btn.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
-            btn.Size=UDim2.new(1,-8,0,24); btn.Text="  📄 "..name; btn.LayoutOrder=i; corner(btn,4)
-            btn.MouseButton1Click:Connect(function()
-                local inp=cfgItems:FindFirstChild("SlotNameInp",true)
-                if inp then inp.Text=name end
-                -- highlight
-                for _,c in ipairs(scroll:GetChildren()) do
-                    if c:IsA("TextButton") then c.BackgroundColor3=Color3.fromRGB(14,0,22) end end
-                btn.BackgroundColor3=Color3.fromRGB(35,0,57)
-            end)
-            btn.MouseEnter:Connect(function() if btn.BackgroundColor3~=Color3.fromRGB(35,0,57) then btn.BackgroundColor3=Color3.fromRGB(22,0,36) end end)
-            btn.MouseLeave:Connect(function() if btn.BackgroundColor3~=Color3.fromRGB(35,0,57) then btn.BackgroundColor3=Color3.fromRGB(14,0,22) end end)
-        end
-    end
-
-    -- Botão Refresh
-    local row4=makeRow(cfgItems,4,36); row4.Size=UDim2.new(1,0,0,36)
-    local refBtn=mkBtn(row4,"↻ Refresh","RefreshBtn",UDim2.new(0,11,0.5,-11),80,22)
-    refBtn.MouseButton1Click:Connect(refreshList)
-    refreshList()
-end
-
--- Categoria: Interface (toggle UI key)
-local _,ifaceItems=makeCat(SettingsPage,"IfaceCat","Interface",2,"rbxassetid://10734963191") -- sliders-horizontal
-
--- Keybind para abrir/fechar a janela
-do
-    -- _uiKey managed via SettingsPage attribute
-    local row=makeRow(ifaceItems,1,44); makeLbl(row,"Toggle UI Key",11)
-    local kbBtn=Instance.new("TextButton",row); kbBtn.BorderSizePixel=0; kbBtn.TextSize=11
-    kbBtn.TextColor3=Color3.fromRGB(154,69,222); kbBtn.BackgroundColor3=Color3.fromRGB(16,0,27)
-    kbBtn.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold)
-    kbBtn.Size=UDim2.new(0,60,0,22); kbBtn.Text="LAlt"
-    kbBtn.Name="UIKeyBind"; kbBtn.Position=UDim2.new(1,-70,0.5,-11)
-    corner(kbBtn,3); mkS(kbBtn,Color3.fromRGB(51,0,97))
-    local listening=false
-    local function startListen()
-        if listening then return end; listening=true
-        kbBtn.Text="..."; kbBtn.TextColor3=Color3.fromRGB(204,136,255)
-        local con; con=UIS.InputBegan:Connect(function(i,gp)
-            if gp then return end
-            if i.UserInputType==Enum.UserInputType.Keyboard then
-                _uiKey=i.KeyCode; kbBtn.Text=i.KeyCode.Name:sub(1,8)
-                kbBtn.TextColor3=Color3.fromRGB(153,68,221); listening=false; con:Disconnect()
-                -- atualiza o listener global
-                SettingsPage:SetAttribute("UIKey", i.KeyCode.Name)
-            end
-        end)
-    end
-    kbBtn.MouseButton1Click:Connect(startListen)
-    kbBtn.InputBegan:Connect(function(i) if i.UserInputType==Enum.UserInputType.Touch then startListen() end end)
-end
-
--- Toggle: Mostrar ToggleUI button
-do
-    makeToggleRow(ifaceItems,2,"Show Toggle Button",true,function(v)
-        TUI.Visible=v
-    end)
-end
-
--- Categoria: About
-local _,aboutItems=makeCat(SettingsPage,"AboutCat","About",3,"rbxassetid://10747374131") -- verified
-do
-    local row=makeRow(aboutItems,1,54); row.Size=UDim2.new(1,0,0,54)
-    local lbl=Instance.new("TextLabel",row); lbl.Size=UDim2.new(1,0,1,0)
-    lbl.BackgroundTransparency=1; lbl.TextColor3=Color3.fromRGB(85,85,85); lbl.TextSize=10
-    lbl.Font=Enum.Font.Gotham; lbl.TextXAlignment=Enum.TextXAlignment.Left; lbl.TextYAlignment=Enum.TextYAlignment.Center
-    lbl.Text="KhaosHub Sheriff v1.0\nMM2 Script\nby kw"; lbl.Position=UDim2.new(0,11,0,0)
-end
-
--- ================================================================
---  ESTADO DO SCRIPT
--- ================================================================
-local sheriffConfig={
-    PingPrediction=true,PingSensitivity=1.18,JumpPrediction=true,
-    HorizontalMultiplier=1.00,VerticalMultiplier=1.00,MaxPredictionDistance=350,
-    VerticalDistanceScale=2.00,LeadTime=0.01,XMultiplier=0.00,ZMultiplier=0.00,UnequipAfterShot=false,
+local sheriffConfig = {
+    PingPrediction=true, PingSensitivity=1.18, JumpPrediction=true,
+    HorizontalMultiplier=1.00, VerticalMultiplier=1.00, MaxPredictionDistance=350,
+    VerticalDistanceScale=2.00, LeadTime=0.01, XMultiplier=0.00, ZMultiplier=0.00,
+    UnequipAfterShot=false,
 }
-local autoShotConfig={wallCheck=false}
+local autoShotConfig = { wallCheck=false }
 local pingCache=0; local lastPingUpdate=0; local PING_UPDATE_INTERVAL=0.15
 local podeAtirar=true; local delayTiro=0.3; local delayHolster=0.0
 local BULLET_SPEED=500; local equipAttempts=0
 local getGunAuto=false; local getGunConn=nil
 local autoShotKey=Enum.KeyCode.E; local getGunKey=Enum.KeyCode.G
 local autoShotKeyEnabled=false; local getGunKeyEnabled=false
+local currentUIKey=Enum.KeyCode.LeftAlt
 
 local connections={}
 local function createconnection(name,signal,cb)
@@ -751,6 +558,431 @@ local function createconnection(name,signal,cb)
 end
 
 -- ================================================================
+--  CONFIG SYSTEM (writefile / readfile do executor)
+-- ================================================================
+local HS = game:GetService("HttpService")
+local CONFIG_DIR = "KhaosHub/"
+local CONFIG_EXT = ".json"
+pcall(function() if not isfolder(CONFIG_DIR) then makefolder(CONFIG_DIR) end end)
+
+local function serializeConfig()
+    return HS:JSONEncode({
+        PingPrediction=sheriffConfig.PingPrediction,
+        PingSensitivity=sheriffConfig.PingSensitivity,
+        JumpPrediction=sheriffConfig.JumpPrediction,
+        HorizontalMultiplier=sheriffConfig.HorizontalMultiplier,
+        VerticalMultiplier=sheriffConfig.VerticalMultiplier,
+        MaxPredictionDistance=sheriffConfig.MaxPredictionDistance,
+        VerticalDistanceScale=sheriffConfig.VerticalDistanceScale,
+        LeadTime=sheriffConfig.LeadTime,
+        XMultiplier=sheriffConfig.XMultiplier,
+        ZMultiplier=sheriffConfig.ZMultiplier,
+        UnequipAfterShot=sheriffConfig.UnequipAfterShot,
+        wallCheck=autoShotConfig.wallCheck,
+        delayTiro=delayTiro,
+        delayHolster=delayHolster,
+        BULLET_SPEED=BULLET_SPEED,
+        autoShotKeyName=autoShotKey.Name,
+        getGunKeyName=getGunKey.Name,
+        autoShotKeyEnabled=autoShotKeyEnabled,
+        getGunKeyEnabled=getGunKeyEnabled,
+        UIKeyName=currentUIKey.Name,
+    })
+end
+
+local function applyConfig(t)
+    if not t then return end
+    if t.PingPrediction~=nil     then sheriffConfig.PingPrediction=t.PingPrediction end
+    if t.PingSensitivity         then sheriffConfig.PingSensitivity=t.PingSensitivity end
+    if t.JumpPrediction~=nil     then sheriffConfig.JumpPrediction=t.JumpPrediction end
+    if t.HorizontalMultiplier    then sheriffConfig.HorizontalMultiplier=t.HorizontalMultiplier end
+    if t.VerticalMultiplier      then sheriffConfig.VerticalMultiplier=t.VerticalMultiplier end
+    if t.MaxPredictionDistance   then sheriffConfig.MaxPredictionDistance=t.MaxPredictionDistance end
+    if t.VerticalDistanceScale   then sheriffConfig.VerticalDistanceScale=t.VerticalDistanceScale end
+    if t.LeadTime                then sheriffConfig.LeadTime=t.LeadTime end
+    if t.XMultiplier             then sheriffConfig.XMultiplier=t.XMultiplier end
+    if t.ZMultiplier             then sheriffConfig.ZMultiplier=t.ZMultiplier end
+    if t.UnequipAfterShot~=nil   then sheriffConfig.UnequipAfterShot=t.UnequipAfterShot end
+    if t.wallCheck~=nil          then autoShotConfig.wallCheck=t.wallCheck end
+    if t.delayTiro               then delayTiro=t.delayTiro end
+    if t.delayHolster            then delayHolster=t.delayHolster end
+    if t.BULLET_SPEED            then BULLET_SPEED=t.BULLET_SPEED end
+    if t.autoShotKeyEnabled~=nil then autoShotKeyEnabled=t.autoShotKeyEnabled end
+    if t.getGunKeyEnabled~=nil   then getGunKeyEnabled=t.getGunKeyEnabled end
+    if t.autoShotKeyName then pcall(function() autoShotKey=Enum.KeyCode[t.autoShotKeyName] end) end
+    if t.getGunKeyName   then pcall(function() getGunKey=Enum.KeyCode[t.getGunKeyName] end) end
+    if t.UIKeyName       then pcall(function() currentUIKey=Enum.KeyCode[t.UIKeyName] end) end
+end
+
+local function cfgSave(name) local ok=pcall(function() writefile(CONFIG_DIR..name..CONFIG_EXT,serializeConfig()) end); return ok end
+local function cfgLoad(name)
+    local ok,data=pcall(function() return readfile(CONFIG_DIR..name..CONFIG_EXT) end)
+    if not ok or not data then return false end
+    local ok2,t=pcall(function() return HS:JSONDecode(data) end)
+    if not ok2 or not t then return false end
+    applyConfig(t)
+    -- atualiza UI visual (applyConfigUI é definido após a Sheriff tab)
+    task.defer(function() if applyConfigUI then applyConfigUI(t) end end)
+    return true
+end
+local function cfgDelete(name) pcall(function() delfile(CONFIG_DIR..name..CONFIG_EXT) end) end
+local function cfgSetAutoload(name)
+    pcall(function() writefile(CONFIG_DIR.."autoload"..CONFIG_EXT, HS:JSONEncode({autoload=name})) end)
+end
+local function cfgGetAutoload()
+    local ok,data=pcall(function() return readfile(CONFIG_DIR.."autoload"..CONFIG_EXT) end)
+    if not ok or not data then return nil end
+    local ok2,t=pcall(function() return HS:JSONDecode(data) end)
+    return (ok2 and t and t.autoload) or nil
+end
+local function cfgList()
+    local list={}
+    local ok,files=pcall(function() return listfiles(CONFIG_DIR) end)
+    if ok and files then
+        for _,f in ipairs(files) do
+            local name=f:match("([^/\\]+)%.json$")
+            if name and name~="autoload" then list[#list+1]=name end
+        end
+    end
+    return list
+end
+
+-- ================================================================
+--  SETTINGS PAGE — fiel ao original
+-- ================================================================
+
+-- Categoria: Configurations
+local cfgCat, cfgItems = makeCat(SettingsPage,"ConfigurationsCat","Configurations",1)
+
+-- referências compartilhadas entre os itens
+local _cfgInput        -- TextBox com o nome
+local _cfgSelLbl       -- TextLabel mostrando config selecionada
+local _cfgDropPanel    -- painel dropdown das configs
+local _autoValLbl      -- TextLabel mostrando autoload atual
+local _refreshDrop     -- função para rebuild do dropdown
+
+-- Item1: TextBox nome + botão Save
+do
+    local row=Instance.new("Frame",cfgItems)
+    row.BorderSizePixel=0; row.Size=UDim2.new(1,0,0,44)
+    row.Name="Item1"; row.LayoutOrder=1; row.BackgroundTransparency=1
+    local d=Instance.new("Frame",row); d.BorderSizePixel=0
+    d.BackgroundColor3=Color3.fromRGB(13,13,13); d.Size=UDim2.new(1,0,0,1)
+    d.Position=UDim2.new(0,0,1,-1); d.Name="Div"
+
+    local cfgInp=Instance.new("TextBox",row)
+    cfgInp.Name="CfgInput"; cfgInp.TextXAlignment=Enum.TextXAlignment.Left
+    cfgInp.PlaceholderColor3=Color3.fromRGB(52,52,52); cfgInp.BorderSizePixel=0
+    cfgInp.TextSize=12; cfgInp.TextColor3=Color3.fromRGB(171,171,171)
+    cfgInp.BackgroundColor3=Color3.fromRGB(14,14,14)
+    cfgInp.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
+    cfgInp.ClearTextOnFocus=false; cfgInp.PlaceholderText="Config name..."
+    cfgInp.Size=UDim2.new(1,-80,0,28); cfgInp.Position=UDim2.new(0,8,0,8); cfgInp.Text=""
+    corner(cfgInp,5); mkS(cfgInp,Color3.fromRGB(35,0,57))
+    local _cp=Instance.new("UIPadding",cfgInp)
+    _cp.PaddingRight=UDim.new(0,8); _cp.PaddingLeft=UDim.new(0,8)
+    _cfgInput=cfgInp
+
+    local saveCfgBtn=Instance.new("TextButton",row)
+    saveCfgBtn.BorderSizePixel=0; saveCfgBtn.TextSize=11
+    saveCfgBtn.TextColor3=Color3.fromRGB(205,137,255); saveCfgBtn.BackgroundColor3=Color3.fromRGB(62,0,108)
+    saveCfgBtn.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold)
+    saveCfgBtn.Size=UDim2.new(0,60,0,28); saveCfgBtn.Text="Save"
+    saveCfgBtn.Name="SaveCfgBtn"; saveCfgBtn.Position=UDim2.new(1,-68,0,8)
+    corner(saveCfgBtn,5); mkS(saveCfgBtn,Color3.fromRGB(120,0,188))
+
+    saveCfgBtn.MouseButton1Click:Connect(function()
+        local name=_cfgInput.Text~="" and _cfgInput.Text or "default"
+        local ok=cfgSave(name)
+        if ok then
+            saveCfgBtn.Text="Saved!"; saveCfgBtn.TextColor3=Color3.fromRGB(100,255,150)
+            task.delay(1.5,function() if saveCfgBtn and saveCfgBtn.Parent then saveCfgBtn.Text="Save"; saveCfgBtn.TextColor3=Color3.fromRGB(205,137,255) end end)
+            if _refreshDrop then _refreshDrop() end
+        else
+            saveCfgBtn.Text="Error"; saveCfgBtn.TextColor3=Color3.fromRGB(255,80,80)
+            task.delay(1.5,function() if saveCfgBtn and saveCfgBtn.Parent then saveCfgBtn.Text="Save"; saveCfgBtn.TextColor3=Color3.fromRGB(205,137,255) end end)
+        end
+    end)
+    saveCfgBtn.InputBegan:Connect(function(i)
+        if i.UserInputType==Enum.UserInputType.Touch then
+            local name=_cfgInput.Text~="" and _cfgInput.Text or "default"
+            cfgSave(name); if _refreshDrop then _refreshDrop() end
+        end
+    end)
+end
+
+-- Item2: Dropdown inline de configs salvas
+do
+    local item2=Instance.new("Frame",cfgItems)
+    item2.ZIndex=5; item2.BorderSizePixel=0; item2.AutomaticSize=Enum.AutomaticSize.Y
+    item2.Size=UDim2.new(1,0,0,0); item2.Name="Item2"; item2.LayoutOrder=2; item2.BackgroundTransparency=1
+    local il2=Instance.new("UIListLayout",item2); il2.SortOrder=Enum.SortOrder.LayoutOrder
+    local d2=Instance.new("Frame",item2); d2.BorderSizePixel=0
+    d2.BackgroundColor3=Color3.fromRGB(13,13,13); d2.Size=UDim2.new(1,0,0,1)
+    d2.Name="Div"; d2.LayoutOrder=99
+
+    local row1=Instance.new("Frame",item2)
+    row1.BorderSizePixel=0; row1.Size=UDim2.new(1,0,0,36)
+    row1.Name="Row1"; row1.LayoutOrder=1; row1.BackgroundTransparency=1
+
+    local selFrame=Instance.new("Frame",row1)
+    selFrame.BorderSizePixel=0; selFrame.BackgroundColor3=Color3.fromRGB(14,14,14)
+    selFrame.Size=UDim2.new(1,-16,0,28); selFrame.Position=UDim2.new(0,8,0,4)
+    selFrame.Name="SelectFrame"; corner(selFrame,5); mkS(selFrame,Color3.fromRGB(35,0,57))
+
+    local selLbl=Instance.new("TextLabel",selFrame)
+    selLbl.TextSize=12; selLbl.TextXAlignment=Enum.TextXAlignment.Left
+    selLbl.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
+    selLbl.TextColor3=Color3.fromRGB(103,103,103); selLbl.BackgroundTransparency=1
+    selLbl.Size=UDim2.new(1,-20,1,0); selLbl.Text="-- select config --"; selLbl.Name="SelLbl"
+    selLbl.Position=UDim2.new(0,8,0,0)
+    _cfgSelLbl=selLbl
+
+    local selArr=Instance.new("TextLabel",selFrame)
+    selArr.TextSize=10
+    selArr.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
+    selArr.TextColor3=Color3.fromRGB(103,103,103); selArr.BackgroundTransparency=1
+    selArr.Size=UDim2.new(0,16,0,28); selArr.Text="v"; selArr.Name="SelArr"; selArr.Position=UDim2.new(1,-20,0,0)
+
+    -- dropdown panel (inline, expande abaixo do selFrame)
+    local cfgDropPanel=Instance.new("Frame",item2)
+    cfgDropPanel.Visible=false; cfgDropPanel.ZIndex=10; cfgDropPanel.BorderSizePixel=0
+    cfgDropPanel.BackgroundColor3=Color3.fromRGB(9,0,15); cfgDropPanel.AutomaticSize=Enum.AutomaticSize.Y
+    cfgDropPanel.Size=UDim2.new(1,0,0,0); cfgDropPanel.Name="CfgDropPanel"; cfgDropPanel.LayoutOrder=2
+    corner(cfgDropPanel,4); mkS(cfgDropPanel,Color3.fromRGB(23,0,38))
+    local _cdp=Instance.new("UIPadding",cfgDropPanel)
+    _cdp.PaddingTop=UDim.new(0,8); _cdp.PaddingRight=UDim.new(0,8)
+    _cdp.PaddingLeft=UDim.new(0,8); _cdp.PaddingBottom=UDim.new(0,8)
+    local _cdl=Instance.new("UIListLayout",cfgDropPanel)
+    _cdl.Padding=UDim.new(0,4); _cdl.SortOrder=Enum.SortOrder.LayoutOrder
+    _cfgDropPanel=cfgDropPanel
+
+    local emptyLbl=Instance.new("TextLabel",cfgDropPanel)
+    emptyLbl.TextSize=11
+    emptyLbl.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
+    emptyLbl.TextColor3=Color3.fromRGB(69,69,69); emptyLbl.BackgroundTransparency=1
+    emptyLbl.Size=UDim2.new(1,0,0,24); emptyLbl.Text="No configs saved"
+    emptyLbl.LayoutOrder=1; emptyLbl.Name="EmptyLbl"
+
+    local function rebuildDrop()
+        -- remove entradas antigas, preserva EmptyLbl
+        for _,c in ipairs(cfgDropPanel:GetChildren()) do
+            if c:IsA("TextButton") then c:Destroy() end end
+        local list=cfgList()
+        emptyLbl.Visible=(#list==0)
+        local tiDD=TweenInfo.new(0.1,Enum.EasingStyle.Quart,Enum.EasingDirection.Out)
+        for i,cfgName in ipairs(list) do
+            local isSel=(_cfgSelLbl.Text==cfgName)
+            local opt=Instance.new("TextButton",cfgDropPanel)
+            opt.BorderSizePixel=0; opt.AutoButtonColor=false
+            opt.BackgroundColor3=isSel and Color3.fromRGB(26,0,40) or Color3.fromRGB(18,0,30)
+            opt.Size=UDim2.new(1,-8,0,34); opt.LayoutOrder=i+1; opt.Text=""; opt.Name="Opt"..i; corner(opt,5)
+            local selBar=Instance.new("Frame",opt); selBar.Visible=isSel; selBar.BorderSizePixel=0
+            selBar.BackgroundColor3=Color3.fromRGB(120,0,188); selBar.Size=UDim2.new(0,3,0,18)
+            selBar.Position=UDim2.new(0,6,0,8); selBar.Name="SelBar"; corner(selBar,2)
+            local oTxt=Instance.new("TextLabel",opt); oTxt.TextSize=11; oTxt.TextXAlignment=Enum.TextXAlignment.Left
+            oTxt.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
+            oTxt.TextColor3=isSel and Color3.fromRGB(181,121,241) or Color3.fromRGB(131,101,161)
+            oTxt.BackgroundTransparency=1; oTxt.Size=UDim2.new(1,-28,1,0)
+            oTxt.Text=cfgName; oTxt.Name="OptTxt"; oTxt.Position=UDim2.new(0,18,0,0)
+            local chk=Instance.new("TextLabel",opt); chk.TextSize=11
+            chk.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold)
+            chk.TextColor3=Color3.fromRGB(154,69,222); chk.BackgroundTransparency=1
+            chk.Size=UDim2.new(0,20,0,34); chk.Text=isSel and "✓" or ""; chk.Name="Check"; chk.Position=UDim2.new(1,-22,0,0)
+            -- selecionar ao clicar
+            local function selectThis()
+                _cfgSelLbl.Text=cfgName; _cfgSelLbl.TextColor3=Color3.fromRGB(171,171,171)
+                if _cfgInput then _cfgInput.Text=cfgName end
+                -- atualiza highlight
+                for _,o in ipairs(cfgDropPanel:GetChildren()) do
+                    if not o:IsA("TextButton") then continue end
+                    local oB=o:FindFirstChild("SelBar"); local oT=o:FindFirstChild("OptTxt"); local oC=o:FindFirstChild("Check")
+                    local isT=(o==opt)
+                    if oB then oB.Visible=isT end; if oC then oC.Text=isT and "✓" or "" end
+                    if oT then TS:Create(oT,tiDD,{TextColor3=isT and Color3.fromRGB(180,120,240) or Color3.fromRGB(130,100,160)}):Play() end
+                    TS:Create(o,tiDD,{BackgroundColor3=isT and Color3.fromRGB(26,0,40) or Color3.fromRGB(18,0,30)}):Play()
+                end
+            end
+            opt.MouseButton1Click:Connect(selectThis)
+            opt.InputBegan:Connect(function(i) if i.UserInputType==Enum.UserInputType.Touch then selectThis() end end)
+            opt.MouseEnter:Connect(function() if opt.BackgroundColor3~=Color3.fromRGB(26,0,40) then TS:Create(opt,tiDD,{BackgroundColor3=Color3.fromRGB(23,0,36)}):Play() end end)
+            opt.MouseLeave:Connect(function() if opt.BackgroundColor3~=Color3.fromRGB(26,0,40) then TS:Create(opt,tiDD,{BackgroundColor3=Color3.fromRGB(18,0,30)}):Play() end end)
+        end
+    end
+    _refreshDrop=rebuildDrop
+
+    local ddOpen=false
+    local function toggleDrop()
+        ddOpen=not ddOpen
+        if ddOpen then rebuildDrop() end
+        cfgDropPanel.Visible=ddOpen
+        selArr.Text=ddOpen and "^" or "v"
+    end
+    selFrame.InputBegan:Connect(function(i)
+        if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then toggleDrop() end
+    end)
+    rebuildDrop()
+end
+
+-- Item3: Keybind open/close window
+do
+    local item3=Instance.new("Frame",cfgItems)
+    item3.ZIndex=5; item3.BorderSizePixel=0; item3.AutomaticSize=Enum.AutomaticSize.Y
+    item3.Size=UDim2.new(1,0,0,0); item3.Name="Item3"; item3.LayoutOrder=3; item3.BackgroundTransparency=1
+    local il3=Instance.new("UIListLayout",item3); il3.SortOrder=Enum.SortOrder.LayoutOrder
+    local d3=Instance.new("Frame",item3); d3.BorderSizePixel=0
+    d3.BackgroundColor3=Color3.fromRGB(13,13,13); d3.Size=UDim2.new(1,0,0,1)
+    d3.Name="Div"; d3.LayoutOrder=99
+
+    local row1=Instance.new("Frame",item3)
+    row1.BorderSizePixel=0; row1.Size=UDim2.new(1,0,0,36)
+    row1.Name="Row1"; row1.LayoutOrder=1; row1.BackgroundTransparency=1
+
+    local tl=Instance.new("TextLabel",row1); tl.TextSize=12; tl.TextXAlignment=Enum.TextXAlignment.Left
+    tl.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
+    tl.TextColor3=Color3.fromRGB(193,193,193); tl.BackgroundTransparency=1
+    tl.Size=UDim2.new(1,-80,1,0); tl.Text="Keybind (open/close)"; tl.Position=UDim2.new(0,11,0,0)
+
+    local skbBtn=Instance.new("TextButton",row1)
+    skbBtn.BorderSizePixel=0; skbBtn.TextSize=9
+    skbBtn.TextColor3=Color3.fromRGB(154,69,222); skbBtn.BackgroundColor3=Color3.fromRGB(16,0,27)
+    skbBtn.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold)
+    skbBtn.Size=UDim2.new(0,55,0,22); skbBtn.Text="LeftAlt"
+    skbBtn.Name="SettingsKeybindBtn"; skbBtn.Position=UDim2.new(1,-63,0.5,-11)
+    corner(skbBtn,3); mkS(skbBtn,Color3.fromRGB(51,0,97))
+
+    local kbListening=false
+    local function startKbListen()
+        if kbListening then return end; kbListening=true
+        skbBtn.Text="..."; skbBtn.TextColor3=Color3.fromRGB(204,136,255)
+        local con; con=UIS.InputBegan:Connect(function(i,gp)
+            if gp then return end
+            if i.UserInputType==Enum.UserInputType.Keyboard then
+                currentUIKey=i.KeyCode
+                skbBtn.Text=i.KeyCode.Name:sub(1,8); skbBtn.TextColor3=Color3.fromRGB(153,68,221)
+                kbListening=false; con:Disconnect()
+            end
+        end)
+    end
+    skbBtn.MouseButton1Click:Connect(startKbListen)
+    skbBtn.InputBegan:Connect(function(i) if i.UserInputType==Enum.UserInputType.Touch then startKbListen() end end)
+end
+
+-- Item4: Load / Update / Delete
+do
+    local row=Instance.new("Frame",cfgItems)
+    row.BorderSizePixel=0; row.Size=UDim2.new(1,0,0,40)
+    row.Name="Item4"; row.LayoutOrder=4; row.BackgroundTransparency=1
+    local d=Instance.new("Frame",row); d.BorderSizePixel=0
+    d.BackgroundColor3=Color3.fromRGB(13,13,13); d.Size=UDim2.new(1,0,0,1)
+    d.Position=UDim2.new(0,0,1,-1); d.Name="Div"
+
+    local function makeCfgBtn(text,name,xOff,tc,sc)
+        local b=Instance.new("TextButton",row); b.BorderSizePixel=0; b.TextSize=10
+        b.TextColor3=tc; b.BackgroundColor3=Color3.fromRGB(16,0,27)
+        b.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold)
+        b.Size=UDim2.new(0,76,0,26); b.Text=text; b.Name=name; b.Position=UDim2.new(0,xOff,0,7)
+        corner(b,5); mkS(b,sc); return b
+    end
+    local loadBtn  =makeCfgBtn("Load",   "LoadBtn",  8,  Color3.fromRGB(154,69,222), Color3.fromRGB(51,0,97))
+    local updateBtn=makeCfgBtn("Update", "UpdateBtn",90, Color3.fromRGB(154,69,222), Color3.fromRGB(51,0,97))
+    local deleteBtn=makeCfgBtn("Delete", "DeleteBtn",172,Color3.fromRGB(205,52,52),  Color3.fromRGB(75,0,0))
+
+    local function flashBtn(btn,msg,col)
+        local orig=btn.Text; btn.Text=msg; btn.TextColor3=col
+        task.delay(1.5,function() if btn and btn.Parent then btn.Text=orig; btn.TextColor3=(col==Color3.fromRGB(100,255,150) or col==Color3.fromRGB(255,160,80)) and Color3.fromRGB(154,69,222) or Color3.fromRGB(205,52,52) end end)
+    end
+    local function getSelectedCfg()
+        if _cfgSelLbl and _cfgSelLbl.Text~="-- select config --" then return _cfgSelLbl.Text end
+        if _cfgInput and _cfgInput.Text~="" then return _cfgInput.Text end
+        return nil
+    end
+
+    loadBtn.MouseButton1Click:Connect(function()
+        local name=getSelectedCfg(); if not name then flashBtn(loadBtn,"Select one",Color3.fromRGB(255,200,80)); return end
+        local ok=cfgLoad(name)
+        flashBtn(loadBtn,ok and "Loaded!" or "Error",ok and Color3.fromRGB(100,255,150) or Color3.fromRGB(255,80,80))
+    end)
+    loadBtn.InputBegan:Connect(function(i)
+        if i.UserInputType~=Enum.UserInputType.Touch then return end
+        local name=getSelectedCfg(); if not name then return end; cfgLoad(name)
+    end)
+
+    updateBtn.MouseButton1Click:Connect(function()
+        local name=getSelectedCfg(); if not name then flashBtn(updateBtn,"Select one",Color3.fromRGB(255,200,80)); return end
+        local ok=cfgSave(name)
+        flashBtn(updateBtn,ok and "Updated!" or "Error",ok and Color3.fromRGB(100,255,150) or Color3.fromRGB(255,80,80))
+        if ok and _refreshDrop then _refreshDrop() end
+    end)
+    updateBtn.InputBegan:Connect(function(i)
+        if i.UserInputType~=Enum.UserInputType.Touch then return end
+        local name=getSelectedCfg(); if not name then return end; cfgSave(name); if _refreshDrop then _refreshDrop() end
+    end)
+
+    deleteBtn.MouseButton1Click:Connect(function()
+        local name=getSelectedCfg(); if not name then flashBtn(deleteBtn,"Select one",Color3.fromRGB(255,200,80)); return end
+        cfgDelete(name)
+        if _cfgSelLbl then _cfgSelLbl.Text="-- select config --"; _cfgSelLbl.TextColor3=Color3.fromRGB(103,103,103) end
+        flashBtn(deleteBtn,"Deleted!",Color3.fromRGB(255,160,80))
+        if _refreshDrop then _refreshDrop() end
+    end)
+    deleteBtn.InputBegan:Connect(function(i)
+        if i.UserInputType~=Enum.UserInputType.Touch then return end
+        local name=getSelectedCfg(); if not name then return end
+        cfgDelete(name)
+        if _cfgSelLbl then _cfgSelLbl.Text="-- select config --"; _cfgSelLbl.TextColor3=Color3.fromRGB(103,103,103) end
+        if _refreshDrop then _refreshDrop() end
+    end)
+end
+
+-- Item5: Auto-load ao iniciar
+do
+    local row=Instance.new("Frame",cfgItems)
+    row.BorderSizePixel=0; row.Size=UDim2.new(1,0,0,48)
+    row.Name="Item5"; row.LayoutOrder=5; row.BackgroundTransparency=1
+    local d=Instance.new("Frame",row); d.BorderSizePixel=0
+    d.BackgroundColor3=Color3.fromRGB(13,13,13); d.Size=UDim2.new(1,0,0,1)
+    d.Position=UDim2.new(0,0,1,-1); d.Name="Div"
+
+    local autoFrame=Instance.new("Frame",row)
+    autoFrame.BorderSizePixel=0; autoFrame.BackgroundColor3=Color3.fromRGB(11,0,17)
+    autoFrame.Size=UDim2.new(1,-16,0,36); autoFrame.Position=UDim2.new(0,8,0,6)
+    autoFrame.Name="AutoFrame"; corner(autoFrame,5); mkS(autoFrame,Color3.fromRGB(27,0,41))
+
+    local atl=Instance.new("TextLabel",autoFrame); atl.TextSize=12; atl.TextXAlignment=Enum.TextXAlignment.Left
+    atl.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
+    atl.TextColor3=Color3.fromRGB(193,193,193); atl.BackgroundTransparency=1
+    atl.Size=UDim2.new(1,-60,0,16); atl.Text="Auto-load on start"; atl.Position=UDim2.new(0,10,0,4)
+
+    local autoVal=Instance.new("TextLabel",autoFrame); autoVal.TextSize=10; autoVal.TextXAlignment=Enum.TextXAlignment.Left
+    autoVal.FontFace=Font.new("rbxasset://fonts/families/Inconsolata.json",Enum.FontWeight.Regular)
+    autoVal.TextColor3=Color3.fromRGB(69,0,120); autoVal.BackgroundTransparency=1
+    autoVal.Size=UDim2.new(1,-60,0,12); autoVal.Text='"'..(cfgGetAutoload() or "none")..'"'
+    autoVal.Name="AutoVal"; autoVal.Position=UDim2.new(0,10,0,22)
+    _autoValLbl=autoVal
+
+    -- Toggle: quando ligado, define a config selecionada como autoload
+    local tf=makeToggle(autoFrame,UDim2.new(1,-54,0.5,-9),cfgGetAutoload()~=nil)
+    tf.AttributeChanged:Connect(function(a)
+        if a~="IsOn" then return end
+        local on=tf:GetAttribute("IsOn")
+        if on then
+            local name=(_cfgSelLbl and _cfgSelLbl.Text~="-- select config --") and _cfgSelLbl.Text
+                    or (_cfgInput and _cfgInput.Text~="" and _cfgInput.Text) or nil
+            if name then
+                cfgSetAutoload(name)
+                autoVal.Text='"'..name..'"'
+            else
+                tf:SetAttribute("IsOn",false)
+                autoVal.Text='"none"'
+            end
+        else
+            cfgDelete("autoload")
+            autoVal.Text='"none"'
+        end
+    end)
+end
+
 --  VELOCITY SMOOTHING
 -- ================================================================
 local velocityHistory={}; local accelerationHistory={}
@@ -976,43 +1208,109 @@ FloatBtn.InputBegan:Connect(function(i)
 end)
 
 -- ================================================================
---  CONSTRUÇÃO DA SHERIFF TAB
+--  CONSTRUÇÃO DA SHERIFF TAB  (setters capturados para applyConfig)
 -- ================================================================
 
 -- Categoria 1: Auto Shot
-local _,autoShotItems=makeCat(SheriffPage,"AutoShotCat","Auto Shot",1,"rbxassetid://10709790387")
+local _,autoShotItems=makeCat(SheriffPage,"AutoShotCat","Auto Shot",1)
 makeFloatPanelRow(autoShotItems,1,"Float Button",FloatBtn)
-makeKeybindRow(autoShotItems,2,"Auto Shot Hotkey","E",false,
-    function(k) autoShotKey=k end, function(v) autoShotKeyEnabled=v end)
-makeDropdownRow(autoShotItems,3,"Shot Speed",{"Fast","Medium","Slow"},"Medium",nil)
-makeToggleRow(autoShotItems,4,"Wall Check",false,function(v) autoShotConfig.wallCheck=v end)
-makeToggleRow(autoShotItems,5,"Unequip After Shot",false,function(v) sheriffConfig.UnequipAfterShot=v end)
-makeSliderRow(autoShotItems,6,"Holster Delay",0,2,0,function(v) delayHolster=v end)
+local _,_asShotKbBtn,_asShotTF,_setAsShotToggle,_setAsShotKey =
+    makeKeybindRow(autoShotItems,2,"Auto Shot Hotkey","E",false,
+        function(k) autoShotKey=k end, function(v) autoShotKeyEnabled=v end)
+local _,_shotSpeedDD,_shotSpeedPanel,_shotSpeedSelTxt =
+    makeDropdownRow(autoShotItems,3,"Shot Speed",{"Fast","Medium","Slow"},"Medium",nil)
+local _,_,_setWallCheck   = makeToggleRow(autoShotItems,4,"Wall Check",false,function(v) autoShotConfig.wallCheck=v end)
+local _,_,_setUnequip     = makeToggleRow(autoShotItems,5,"Unequip After Shot",false,function(v) sheriffConfig.UnequipAfterShot=v end)
+local _,_setHolsterDelay  = makeSliderRow(autoShotItems,6,"Holster Delay",0,2,0,function(v) delayHolster=v end)
 
 -- Categoria 2: Prediction
-local _,predItems=makeCat(SheriffPage,"PredCat","Prediction",2,"rbxassetid://10709752035")
-makeToggleRow(predItems,1,"Ping Prediction",true,function(v) sheriffConfig.PingPrediction=v end)
-makeToggleRow(predItems,2,"Jump Prediction",true,function(v) sheriffConfig.JumpPrediction=v end)
-makeSliderRow(predItems,3,"Ping Sensitivity",0.5,2.0,1.18,function(v) sheriffConfig.PingSensitivity=v end)
-makeSliderRow(predItems,4,"Horiz Multiplier",0.1,2.0,1.00,function(v) sheriffConfig.HorizontalMultiplier=v end)
-makeSliderRow(predItems,5,"Vert Multiplier",0.1,2.0,1.00,function(v) sheriffConfig.VerticalMultiplier=v end)
-makeSliderRow(predItems,6,"Lead Time",0.0,0.15,0.01,function(v) sheriffConfig.LeadTime=v end)
-makeSliderRow(predItems,7,"Bullet Speed",300,800,500,function(v) BULLET_SPEED=v end)
-makeSliderRow(predItems,8,"Vert Dist Scale",1,20,2.00,function(v) sheriffConfig.VerticalDistanceScale=v end)
-makeSliderRow(predItems,9,"Max Distance",100,500,350,function(v) sheriffConfig.MaxPredictionDistance=v end)
-makeSliderRow(predItems,10,"X Multiplier",-1.0,1.0,0.00,function(v) sheriffConfig.XMultiplier=v end)
-makeSliderRow(predItems,11,"Z Multiplier",-1.0,1.0,0.00,function(v) sheriffConfig.ZMultiplier=v end)
+local _,predItems=makeCat(SheriffPage,"PredCat","Prediction",2)
+local _,_,_setPingPred    = makeToggleRow(predItems,1,"Ping Prediction",true,function(v) sheriffConfig.PingPrediction=v end)
+local _,_,_setJumpPred    = makeToggleRow(predItems,2,"Jump Prediction",true,function(v) sheriffConfig.JumpPrediction=v end)
+local _,_setPingSens      = makeSliderRow(predItems,3,"Ping Sensitivity",0.5,2.0,1.18,function(v) sheriffConfig.PingSensitivity=v end)
+local _,_setHorizMult     = makeSliderRow(predItems,4,"Horiz Multiplier",0.1,2.0,1.00,function(v) sheriffConfig.HorizontalMultiplier=v end)
+local _,_setVertMult      = makeSliderRow(predItems,5,"Vert Multiplier",0.1,2.0,1.00,function(v) sheriffConfig.VerticalMultiplier=v end)
+local _,_setLeadTime      = makeSliderRow(predItems,6,"Lead Time",0.0,0.15,0.01,function(v) sheriffConfig.LeadTime=v end)
+local _,_setBulletSpeed   = makeSliderRow(predItems,7,"Bullet Speed",300,800,500,function(v) BULLET_SPEED=v end)
+local _,_setVertDistScale = makeSliderRow(predItems,8,"Vert Dist Scale",1,20,2.00,function(v) sheriffConfig.VerticalDistanceScale=v end)
+local _,_setMaxDist       = makeSliderRow(predItems,9,"Max Distance",100,500,350,function(v) sheriffConfig.MaxPredictionDistance=v end)
+local _,_setXMult         = makeSliderRow(predItems,10,"X Multiplier",-1.0,1.0,0.00,function(v) sheriffConfig.XMultiplier=v end)
+local _,_setZMult         = makeSliderRow(predItems,11,"Z Multiplier",-1.0,1.0,0.00,function(v) sheriffConfig.ZMultiplier=v end)
 
 -- Categoria 3: Get Gun
-local _,getGunItems=makeCat(SheriffPage,"GetGunCat","Get Gun",3,"rbxassetid://10747383470")
-makeToggleRow(getGunItems,1,"Auto Get Gun",false,function(v)
+local _,getGunItems=makeCat(SheriffPage,"GetGunCat","Get Gun",3)
+local _,_,_setAutoGetGun  = makeToggleRow(getGunItems,1,"Auto Get Gun",false,function(v)
     getGunAuto=v; if v then startGetGunAuto() else stopGetGunAuto() end end)
-makeKeybindRow(getGunItems,2,"Get Gun Hotkey","G",false,
-    function(k) getGunKey=k end, function(v) getGunKeyEnabled=v end)
+local _,_getGunKbBtn,_getGunTF,_setGetGunToggle,_setGetGunKey =
+    makeKeybindRow(getGunItems,2,"Get Gun Hotkey","G",false,
+        function(k) getGunKey=k end, function(v) getGunKeyEnabled=v end)
 do
     local row=makeRow(getGunItems,3,44); makeLbl(row,"Pick Up Gun Now",11)
-    local btn=mkBtn(row,"Pegar","BtnPegar",UDim2.new(1,-74,0.5,-11),60,22)
+    local btn=mkBtn(row,"Pick Up","BtnPegar",UDim2.new(1,-74,0.5,-11),60,22)
     btn.MouseButton1Click:Connect(function() PegarArmaNoChao() end)
+end
+
+-- ================================================================
+--  applyConfig UI: atualiza visual após load
+-- ================================================================
+local function applyConfigUI(t)
+    if not t then return end
+    -- Sliders
+    if t.PingSensitivity      and _setPingSens      then _setPingSens(t.PingSensitivity) end
+    if t.HorizontalMultiplier and _setHorizMult     then _setHorizMult(t.HorizontalMultiplier) end
+    if t.VerticalMultiplier   and _setVertMult      then _setVertMult(t.VerticalMultiplier) end
+    if t.LeadTime             and _setLeadTime      then _setLeadTime(t.LeadTime) end
+    if t.BULLET_SPEED         and _setBulletSpeed   then _setBulletSpeed(t.BULLET_SPEED) end
+    if t.VerticalDistanceScale and _setVertDistScale then _setVertDistScale(t.VerticalDistanceScale) end
+    if t.MaxPredictionDistance and _setMaxDist      then _setMaxDist(t.MaxPredictionDistance) end
+    if t.XMultiplier          and _setXMult         then _setXMult(t.XMultiplier) end
+    if t.ZMultiplier          and _setZMult         then _setZMult(t.ZMultiplier) end
+    if t.delayHolster         and _setHolsterDelay  then _setHolsterDelay(t.delayHolster) end
+    -- Toggles
+    if t.PingPrediction~=nil  and _setPingPred      then _setPingPred(t.PingPrediction) end
+    if t.JumpPrediction~=nil  and _setJumpPred      then _setJumpPred(t.JumpPrediction) end
+    if t.wallCheck~=nil       and _setWallCheck     then _setWallCheck(t.wallCheck) end
+    if t.UnequipAfterShot~=nil and _setUnequip      then _setUnequip(t.UnequipAfterShot) end
+    if t.autoShotKeyEnabled~=nil and _setAsShotToggle then _setAsShotToggle(t.autoShotKeyEnabled) end
+    if t.getGunKeyEnabled~=nil   and _setGetGunToggle then _setGetGunToggle(t.getGunKeyEnabled) end
+    if t.autoShotKeyEnabled~=nil and _setAutoGetGun then end -- handled above via toggle
+    -- Keybinds
+    if t.autoShotKeyName and _setAsShotKey then
+        pcall(function()
+            local kc=Enum.KeyCode[t.autoShotKeyName]; autoShotKey=kc; _setAsShotKey(kc)
+        end)
+    end
+    if t.getGunKeyName and _setGetGunKey then
+        pcall(function()
+            local kc=Enum.KeyCode[t.getGunKeyName]; getGunKey=kc; _setGetGunKey(kc)
+        end)
+    end
+    -- UI keybind label
+    if t.UIKeyName then
+        pcall(function()
+            currentUIKey=Enum.KeyCode[t.UIKeyName]
+            local skb=Win:FindFirstChild("SettingsKeybindBtn",true)
+            if skb then skb.Text=currentUIKey.Name:sub(1,8) end
+        end)
+    end
+    -- Dropdown Shot Speed
+    if t.delayTiro and _shotSpeedSelTxt then
+        local label = t.delayTiro<=0.15 and "Fast" or t.delayTiro>=0.5 and "Slow" or "Medium"
+        _shotSpeedSelTxt.Text=label
+        -- atualiza seleção visual no painel se aberto
+        if _shotSpeedPanel then
+            for _,opt in ipairs(_shotSpeedPanel:GetChildren()) do
+                if opt:IsA("TextButton") then
+                    local oTxt=opt:FindFirstChild("OptTxt"); local oBar=opt:FindFirstChild("SelBar"); local oChk=opt:FindFirstChild("Check")
+                    local isSel=(oTxt and oTxt.Text==label)
+                    if oBar then oBar.Visible=isSel end
+                    if oChk then oChk.Text=isSel and "✓" or "" end
+                    if oTxt then oTxt.TextColor3=isSel and Color3.fromRGB(181,121,241) or Color3.fromRGB(131,101,161) end
+                    opt.BackgroundColor3=isSel and Color3.fromRGB(26,0,40) or Color3.fromRGB(18,0,30)
+                end
+            end
+        end
+    end
 end
 
 -- ================================================================
@@ -1106,13 +1404,11 @@ do
     CloseBtn.MouseButton1Click:Connect(closeWin)
     UIS.InputBegan:Connect(function(i,gp)
         if gp then return end
-        local uiKeyName=SettingsPage:GetAttribute("UIKey") or "LeftAlt"
-        local uiKey=pcall(function() return Enum.KeyCode[uiKeyName] end) and Enum.KeyCode[uiKeyName] or Enum.KeyCode.LeftAlt
-        if i.KeyCode==uiKey then if Win.Visible then closeWin() else openWin() end end
+        if i.KeyCode==currentUIKey then if Win.Visible then closeWin() else openWin() end end
     end)
     makeDraggable(Tbar,Win); makeDraggable(TUI,TUI,function() if Win.Visible then closeWin() else openWin() end end)
     -- Abas
-    local tabs={"Sheriff","Settings"}
+    local tabs={"Sheriff","Visual","Settings"}
     local function activateTab(name)
         for _,t in ipairs(tabs) do
             local btn=SideList:FindFirstChild(t.."TabBtn"); local page=Cont:FindFirstChild(t.."Page"); local on=t==name
@@ -1168,58 +1464,348 @@ do
             local selTxt=dd:FindFirstChild("SelTxt"); local arrLbl=dd:FindFirstChild("ArrIcon")
             local function repoPanel()
                 local ab=dd.AbsolutePosition; local dH=dd.AbsoluteSize.Y; local dW=dd.AbsoluteSize.X
- local vp=Camera.ViewportSize; local pH=panel:GetAttribute("PanelH") ou panel.AbsoluteSize.Y
- pw local=math.max(dW,120); px local=sClamp(ab.X,8,vp.X-pw-8)
- local spB=vp.Y-(ab.Y+dH)-8; local py=spB>=pH e ab.Y+dH+4 ou ab.Y-pH-4
- py=sClamp(py,8,vp.Y-pH-8); painel.Posição=UDim2.fromOffset(px,py); painel.Tamanho=UDim2.fromOffset(pw,pH)
- fim
- local dh=painel:FindFirstChild("DragHandle")
- se dh então
- dh.InputBegan:Conectar(função(i)
- se i.UserInputType~=Enum.UserInputType.MouseButton1 e i.UserInputType~=Enum.UserInputType.Touch então retorne o fim
- se activeDrag então retorne ao final
- activeDrag={obj=painel,sX=i.Position.X,sY=i.Position.Y,
- oX=painel.PosiçãoAbsoluta.X,oY=painel.PosiçãoAbsoluta.Y,movido=falso,isWin=falso}
- fim)
- dh.InputEnded:Conectar(função(i)
- se i.UserInputType~=Enum.UserInputType.MouseButton1 e i.UserInputType~=Enum.UserInputType.Touch então retorne o fim
- se activeDrag e activeDrag.obj==panel então activeDrag=nil end
- fim)
- fim
- dd.InputBegan:Conectar(função(i)
- se i.UserInputType~=Enum.UserInputType.MouseButton1 e i.UserInputType~=Enum.UserInputType.Touch então retorne o fim
- local wasOpen=painel.Visível
- se openDDPanel e openDDPanel~=panel então openDDPanel.Visible=false; openDDPanel=nil end
- se não estiver aberto então repoPanel(); painel.Visível=verdadeiro; openDDPanel=painel; justOpened=true
- se arrLbl então arrLbl.Rotation=180 fim
- else panel.Visible=false; openDDPanel=nil; se arrLbl então arrLbl.Rotation=0 fim fim
- fim)
- para _,opt em ipairs(painel:GetChildren()) faça
- se não optar:IsA("TextButton") então continue terminando
- local oTxt=opt:FindFirstChild("OptTxt"); local oBar=opt:FindFirstChild("SelBar")
- opt.MouseEnter:Connect(function() TS:Create(opt,tiDD,{BackgroundColor3=Color3.fromRGB(32,0,52)}):Play() fim)
- opt.MouseLeave:Conectar(função()
- TS:Create(opt,tiDD,{BackgroundColor3=oBar e oBar.Visible e Color3.fromRGB(26,0,40) ou Color3.fromRGB(18,0,30)}):Play() fim)
- opt.InputBegan:Conectar(função(i)
- se i.UserInputType~=Enum.UserInputType.MouseButton1 e i.UserInputType~=Enum.UserInputType.Touch então retorne o fim
- justOpened=true
- se selTxt e oTxt então selTxt.Text=oTxt.Text fim
- local txt=oTxt e oTxt.Text ou ""
- se txt=="Rápido" então delayTiro=0,15 senão se txt=="Médio" então delayTiro=0,3 senão se txt=="Lento" então delayTiro=0,5 fim
- para _,o em ipairs(painel:GetChildren()) faça
- se não o:IsA("TextButton") então continue fim
- local oB=o:FindFirstChild("SelBar"); local oT=o:FindFirstChild("OptTxt"); local oC=o:FindFirstChild("Verificar"); local isT=(o==opt)
- se oB então oB.Visible=isT fim; se oC então oC.Text=isT e "✓" ou "" fim
- se oT então TS:Create(oT,tiDD,{TextColor3=isT e Color3.fromRGB(180,120,240) ou Color3.fromRGB(130,100,160)}):Play() fim
- TS:Create(o,tiDD,{BackgroundColor3=isT e Color3.fromRGB(26,0,40) ou Color3.fromRGB(18,0,30)}):Play()
- fim
- painel.Visível=falso; openDDPanel=nulo; se arrLbl então arrLbl.Rotation=0 fim
- fim)
- fim
- fim
- fim
- hookDropdowns(Cont.)
-fim
+                local vp=Camera.ViewportSize; local pH=panel:GetAttribute("PanelH") or panel.AbsoluteSize.Y
+                local pw=math.max(dW,120); local px=sClamp(ab.X,8,vp.X-pw-8)
+                local spB=vp.Y-(ab.Y+dH)-8; local py=spB>=pH and ab.Y+dH+4 or ab.Y-pH-4
+                py=sClamp(py,8,vp.Y-pH-8); panel.Position=UDim2.fromOffset(px,py); panel.Size=UDim2.fromOffset(pw,pH)
+            end
+            local dh=panel:FindFirstChild("DragHandle")
+            if dh then
+                dh.InputBegan:Connect(function(i)
+                    if i.UserInputType~=Enum.UserInputType.MouseButton1 and i.UserInputType~=Enum.UserInputType.Touch then return end
+                    if activeDrag then return end
+                    activeDrag={obj=panel,sX=i.Position.X,sY=i.Position.Y,
+                        oX=panel.AbsolutePosition.X,oY=panel.AbsolutePosition.Y,moved=false,isWin=false}
+                end)
+                dh.InputEnded:Connect(function(i)
+                    if i.UserInputType~=Enum.UserInputType.MouseButton1 and i.UserInputType~=Enum.UserInputType.Touch then return end
+                    if activeDrag and activeDrag.obj==panel then activeDrag=nil end
+                end)
+            end
+            dd.InputBegan:Connect(function(i)
+                if i.UserInputType~=Enum.UserInputType.MouseButton1 and i.UserInputType~=Enum.UserInputType.Touch then return end
+                local wasOpen=panel.Visible
+                if openDDPanel and openDDPanel~=panel then openDDPanel.Visible=false; openDDPanel=nil end
+                if not wasOpen then repoPanel(); panel.Visible=true; openDDPanel=panel; justOpened=true
+                    if arrLbl then arrLbl.Rotation=180 end
+                else panel.Visible=false; openDDPanel=nil; if arrLbl then arrLbl.Rotation=0 end end
+            end)
+            for _,opt in ipairs(panel:GetChildren()) do
+                if not opt:IsA("TextButton") then continue end
+                local oTxt=opt:FindFirstChild("OptTxt"); local oBar=opt:FindFirstChild("SelBar")
+                opt.MouseEnter:Connect(function() TS:Create(opt,tiDD,{BackgroundColor3=Color3.fromRGB(32,0,52)}):Play() end)
+                opt.MouseLeave:Connect(function()
+                    TS:Create(opt,tiDD,{BackgroundColor3=oBar and oBar.Visible and Color3.fromRGB(26,0,40) or Color3.fromRGB(18,0,30)}):Play() end)
+                opt.InputBegan:Connect(function(i)
+                    if i.UserInputType~=Enum.UserInputType.MouseButton1 and i.UserInputType~=Enum.UserInputType.Touch then return end
+                    justOpened=true
+                    if selTxt and oTxt then selTxt.Text=oTxt.Text end
+                    local txt=oTxt and oTxt.Text or ""
+                    if txt=="Fast" then delayTiro=0.15 elseif txt=="Medium" then delayTiro=0.3 elseif txt=="Slow" then delayTiro=0.5 end
+                    for _,o in ipairs(panel:GetChildren()) do
+                        if not o:IsA("TextButton") then continue end
+                        local oB=o:FindFirstChild("SelBar"); local oT=o:FindFirstChild("OptTxt"); local oC=o:FindFirstChild("Check"); local isT=(o==opt)
+                        if oB then oB.Visible=isT end; if oC then oC.Text=isT and "✓" or "" end
+                        if oT then TS:Create(oT,tiDD,{TextColor3=isT and Color3.fromRGB(180,120,240) or Color3.fromRGB(130,100,160)}):Play() end
+                        TS:Create(o,tiDD,{BackgroundColor3=isT and Color3.fromRGB(26,0,40) or Color3.fromRGB(18,0,30)}):Play()
+                    end
+                    panel.Visible=false; openDDPanel=nil; if arrLbl then arrLbl.Rotation=0 end
+                end)
+            end
+        end
+    end
+    hookDropdowns(Cont)
+end
+
+-- ================================================================
+--  ESP CONFIG
+-- ================================================================
+local espConfig = {
+    enabled       = false,
+    innocentColor = Color3.fromRGB(0,255,0),
+    sheriffColor  = Color3.fromRGB(0,38,255),
+    murdererColor = Color3.fromRGB(255,0,0),
+    nameEnabled   = true,
+    nameSize      = 14,
+    gunEnabled    = false,
+    coinEnabled   = false,
+}
+
+local espConnections  = {}
+local activeESP       = {}
+local espRunning      = false
+local roleCache       = {}
+local playerDataRemote = nil
+
+local function getPlayerDataRemote()
+    if playerDataRemote then return playerDataRemote end
+    local ok,r=pcall(function() return game:GetService("ReplicatedStorage"):FindFirstChild("GetPlayerData",true) end)
+    if ok and r then playerDataRemote=r end
+    return playerDataRemote
+end
+
+local rolePollConn = nil
+local function startRolePoll()
+    if rolePollConn then return end
+    rolePollConn = RunService.Heartbeat:Connect(function()
+        if not espRunning then return end
+        local remote=getPlayerDataRemote(); if not remote then return end
+        local ok,data=pcall(function() return remote:InvokeServer() end)
+        if ok and type(data)=="table" then
+            local nc={}
+            for pName,pData in pairs(data) do
+                if type(pData)=="table" then
+                    nc[pName]=(pData.Dead or not pData.Role or pData.Role=="") and "Lobby" or pData.Role
+                end
+            end
+            roleCache=nc
+        end
+    end)
+end
+local function stopRolePoll()
+    if rolePollConn then rolePollConn:Disconnect(); rolePollConn=nil end
+    roleCache={}
+end
+
+local function getRoleColor(playerName)
+    local plr=Players:FindFirstChild(playerName)
+    if plr then
+        local char=plr.Character; local bp=plr:FindFirstChild("Backpack")
+        if (char and char:FindFirstChild("Knife")) or (bp and bp:FindFirstChild("Knife")) then return espConfig.murdererColor end
+        if (char and char:FindFirstChild("Gun"))   or (bp and bp:FindFirstChild("Gun"))   then return espConfig.sheriffColor  end
+    end
+    local role=roleCache[playerName]
+    if role=="Murderer" then return espConfig.murdererColor end
+    if role=="Sheriff"  then return espConfig.sheriffColor  end
+    return espConfig.innocentColor
+end
+
+-- Update loop (throttled, sem while)
+local espElapsed=0
+createconnection("ESPUpdate",RunService.Heartbeat,function(dt)
+    espElapsed=espElapsed+dt
+    if espElapsed<0.2 then return end
+    espElapsed=0
+    if not espConfig.enabled then return end
+    for i=#activeESP,1,-1 do
+        local e=activeESP[i]
+        if not e.character or not e.character.Parent then
+            if e.highlight and e.highlight.Parent then e.highlight:Destroy() end
+            if e.tag and e.tag.Parent then e.tag:Destroy() end
+            table.remove(activeESP,i)
+        else
+            local color=getRoleColor(e.player.Name)
+            e.highlight.OutlineColor=color; e.label.TextColor3=color
+            e.label.Text=e.player.Name; e.label.TextSize=espConfig.nameSize
+            e.tag.Enabled=espConfig.nameEnabled
+        end
+    end
+end)
+
+local function CleanupPlayer(plr)
+    if not plr then return end
+    local char=plr.Character; if not char then return end
+    local holder=char:FindFirstChild("ESPHolder"); if holder then holder:Destroy() end
+    local head=char:FindFirstChild("Head"); if not head then return end
+    local tag=head:FindFirstChild("KhaosTag"); if tag then tag:Destroy() end
+end
+
+local function ApplyESP(targetPlayer,character)
+    if not character then return end
+    local head=character:WaitForChild("Head",5); if not head then return end
+    local oldHolder=character:FindFirstChild("ESPHolder"); if oldHolder then oldHolder:Destroy() end
+    local holder=Instance.new("Folder"); holder.Name="ESPHolder"; holder.Parent=character
+    local highlight=Instance.new("Highlight")
+    highlight.Name="ESPHighlight"; highlight.Adornee=character
+    highlight.FillTransparency=1; highlight.OutlineTransparency=0
+    highlight.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.OutlineColor=getRoleColor(targetPlayer.Name); highlight.Parent=holder
+    local oldTag=head:FindFirstChild("KhaosTag"); if oldTag then oldTag:Destroy() end
+    local tag=Instance.new("BillboardGui")
+    tag.Name="KhaosTag"; tag.Size=UDim2.new(0,200,0,40)
+    tag.AlwaysOnTop=true; tag.StudsOffset=Vector3.new(0,1.5,0); tag.Parent=head
+    local label=Instance.new("TextLabel")
+    label.Name="Label"; label.BackgroundTransparency=1
+    label.Size=UDim2.new(1,0,1,0); label.Text=targetPlayer.Name
+    label.Font=Enum.Font.GothamBold; label.TextSize=espConfig.nameSize
+    label.TextStrokeTransparency=0; label.TextScaled=false
+    label.TextColor3=getRoleColor(targetPlayer.Name); label.Parent=tag
+    table.insert(activeESP,{player=targetPlayer,character=character,highlight=highlight,tag=tag,label=label})
+end
+
+local function CreateESP(targetPlayer)
+    if targetPlayer==LP then return end
+    if targetPlayer.Character then task.spawn(ApplyESP,targetPlayer,targetPlayer.Character) end
+    local ref={player=targetPlayer}
+    ref.conn=targetPlayer.CharacterAdded:Connect(function(char)
+        task.wait(0.15); task.spawn(ApplyESP,targetPlayer,char)
+    end)
+    table.insert(espConnections,ref)
+end
+
+local function enablePlayerESP()
+    if espRunning then
+        espRunning=false; espConfig.enabled=false; stopRolePoll()
+    end
+    espRunning=true; espConfig.enabled=true
+    for _,conn in pairs(espConnections) do if conn.conn and conn.conn.Connected then conn.conn:Disconnect() end end
+    for _,e in pairs(activeESP) do
+        if e.highlight and e.highlight.Parent then e.highlight:Destroy() end
+        if e.tag and e.tag.Parent then e.tag:Destroy() end
+    end
+    espConnections={}; activeESP={}
+    startRolePoll()
+    for _,plr in pairs(Players:GetPlayers()) do CreateESP(plr) end
+    local addedRef={}; addedRef.conn=Players.PlayerAdded:Connect(CreateESP)
+    table.insert(espConnections,addedRef)
+    local removingRef={}
+    removingRef.conn=Players.PlayerRemoving:Connect(function(plr)
+        for i=#activeESP,1,-1 do
+            if activeESP[i].player==plr then
+                if activeESP[i].highlight and activeESP[i].highlight.Parent then activeESP[i].highlight:Destroy() end
+                if activeESP[i].tag and activeESP[i].tag.Parent then activeESP[i].tag:Destroy() end
+                table.remove(activeESP,i)
+            end
+        end
+        for i=#espConnections,1,-1 do
+            local c=espConnections[i]
+            if c.player==plr then
+                if c.conn and c.conn.Connected then c.conn:Disconnect() end
+                table.remove(espConnections,i)
+            end
+        end
+        CleanupPlayer(plr)
+    end)
+    table.insert(espConnections,removingRef)
+end
+
+local function disablePlayerESP()
+    espRunning=false; espConfig.enabled=false; stopRolePoll()
+    for _,conn in pairs(espConnections) do if conn.conn and conn.conn.Connected then conn.conn:Disconnect() end end
+    for _,e in pairs(activeESP) do
+        if e.highlight and e.highlight.Parent then e.highlight:Destroy() end
+        if e.tag and e.tag.Parent then e.tag:Destroy() end
+    end
+    espConnections={}; activeESP={}
+    for _,plr in pairs(Players:GetPlayers()) do CleanupPlayer(plr) end
+end
+
+-- ── Gun ESP ──
+local gunESPConnection=nil
+local function applyGunESP(v)
+    if v.Name~="GunDrop" or not v:IsA("BasePart") then return end
+    if v:FindFirstChild("GunESP_Highlight") then return end
+    local hl=Instance.new("Highlight")
+    hl.Name="GunESP_Highlight"; hl.FillColor=Color3.fromRGB(255,255,0)
+    hl.OutlineColor=Color3.new(1,1,1); hl.FillTransparency=0.5
+    hl.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop; hl.Parent=v
+    local bb=Instance.new("BillboardGui")
+    bb.Name="GunESP_Name"; bb.AlwaysOnTop=true
+    bb.Size=UDim2.new(0,100,0,50); bb.StudsOffset=Vector3.new(0,2,0); bb.Parent=v
+    local lbl=Instance.new("TextLabel")
+    lbl.BackgroundTransparency=1; lbl.Size=UDim2.new(1,0,1,0)
+    lbl.Text="GUN"; lbl.TextColor3=Color3.fromRGB(255,255,0)
+    lbl.TextStrokeTransparency=0; lbl.TextSize=14; lbl.Font=Enum.Font.GothamBold; lbl.Parent=bb
+end
+local function enableGunESP()
+    if gunESPConnection then return end
+    for _,v in pairs(workspace:GetDescendants()) do pcall(applyGunESP,v) end
+    gunESPConnection=workspace.DescendantAdded:Connect(function(v)
+        if espConfig.gunEnabled then pcall(applyGunESP,v) end
+    end)
+end
+local function disableGunESP()
+    if gunESPConnection then gunESPConnection:Disconnect(); gunESPConnection=nil end
+    for _,v in pairs(workspace:GetDescendants()) do
+        local hl=v:FindFirstChild("GunESP_Highlight"); if hl then hl:Destroy() end
+        local bb=v:FindFirstChild("GunESP_Name"); if bb then bb:Destroy() end
+    end
+end
+
+-- ── Coin ESP ──
+local coinESPConnection=nil
+local function aplicarCoinESP(obj)
+    if not obj:IsA("BasePart") then return end
+    if obj:FindFirstChild("Coin_XRAY") then return end
+    local sz=obj.Size; if sz.Magnitude<0.01 then sz=Vector3.new(1,1,1) end
+    local adorn=Instance.new("BoxHandleAdornment")
+    adorn.Name="Coin_XRAY"; adorn.AlwaysOnTop=true; adorn.Adornee=obj
+    adorn.ZIndex=5; adorn.Size=sz; adorn.Color3=Color3.fromRGB(255,215,0)
+    adorn.Transparency=0.6; adorn.Parent=obj
+    obj.AncestryChanged:Connect(function(_,parent)
+        if not parent and adorn and adorn.Parent then adorn:Destroy() end
+    end)
+end
+local function enableCoinESP()
+    if coinESPConnection then return end
+    for _,v in pairs(workspace:GetDescendants()) do
+        if v.Name=="Coin_Server" then pcall(aplicarCoinESP,v) end
+    end
+    coinESPConnection=workspace.DescendantAdded:Connect(function(new)
+        if espConfig.coinEnabled and new.Name=="Coin_Server" then
+            task.defer(function() if new and new.Parent then pcall(aplicarCoinESP,new) end end)
+        end
+    end)
+end
+local function disableCoinESP()
+    if coinESPConnection then coinESPConnection:Disconnect(); coinESPConnection=nil end
+    for _,v in pairs(workspace:GetDescendants()) do
+        local xray=v:FindFirstChild("Coin_XRAY"); if xray then xray:Destroy() end
+    end
+end
+
+-- ================================================================
+--  VISUAL TAB — UI
+-- ================================================================
+
+-- Categoria: Player ESP
+local _,espItems=makeCat(VisualPage,"PlayerESPCat","Player ESP",1)
+
+-- Toggle: Player ESP
+local _,_,_setPlayerESP=makeToggleRow(espItems,1,"Player ESP",false,function(v)
+    if v then enablePlayerESP() else disablePlayerESP() end
+end)
+
+-- Toggle: Show Name
+local _,_,_setESPName=makeToggleRow(espItems,2,"Show Name",true,function(v)
+    espConfig.nameEnabled=v
+end)
+
+-- Slider: Name Size
+local _,_setNameSize=makeSliderRow(espItems,3,"Name Size",8,28,14,function(v)
+    espConfig.nameSize=v
+end)
+
+-- Categoria: Item ESP
+local _,itemESPItems=makeCat(VisualPage,"ItemESPCat","Item ESP",2)
+
+-- Toggle: Gun ESP
+local _,_,_setGunESP=makeToggleRow(itemESPItems,1,"Gun ESP",false,function(v)
+    espConfig.gunEnabled=v
+    if v then enableGunESP() else disableGunESP() end
+end)
+
+-- Toggle: Coin ESP
+local _,_,_setCoinESP=makeToggleRow(itemESPItems,2,"Coin ESP",false,function(v)
+    espConfig.coinEnabled=v
+    if v then enableCoinESP() else disableCoinESP() end
+end)
+
 
 -- INIT
-podeAtirar=verdadeiro; velocidadeHistória={}; aceleraçãoHistória={}
+podeAtirar=true; velocityHistory={}; accelerationHistory={}
+-- Auto-load config on start
+do
+    local autoName=cfgGetAutoload()
+    if autoName and autoName~="" then
+        -- lê e aplica config (applyConfigUI já definido acima)
+        local ok,data=pcall(function() return readfile(CONFIG_DIR..autoName..CONFIG_EXT) end)
+        if ok and data then
+            local ok2,t=pcall(function() return HS:JSONDecode(data) end)
+            if ok2 and t then
+                applyConfig(t)
+                applyConfigUI(t)
+            end
+        end
+    end
+end
