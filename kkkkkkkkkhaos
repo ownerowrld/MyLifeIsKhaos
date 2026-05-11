@@ -3,6 +3,7 @@
 -- ================================================================
 
 local _ui = {} -- setters UI
+-- som criado após janela (ver controller)
 
 do
     local pg = pcall(function() return game:GetService("CoreGui") end) and game:GetService("CoreGui") or game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
@@ -24,99 +25,99 @@ SG.Name="KhaosHub"; SG.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
 SG.ResetOnSpawn=false
 do
     local ok,cg=pcall(function() return game:GetService("CoreGui") end)
- SG.Parent = ok e cg ou LP:WaitForChild("PlayerGui")
-fim
+    SG.Parent = ok and cg or LP:WaitForChild("PlayerGui")
+end
 
--- AlternarUI
+-- ToggleUI
 local TUI=Instance.new("ImageButton",SG)
 TUI.BorderSizePixel=0; TUI.ScaleType=Enum.ScaleType.Fit
 TUI.BackgroundColor3=Color3.fromRGB(3,3,3); TUI.ZIndex=10
 TUI.Image="rbxassetid://109958086553778"; TUI.Size=UDim2.new(0,36,0,36)
-TUI.Name="ToggleUI"; TUI.Position=UDim2.new(0,5,-18,0,12)
-Instância.new("UICorner",TUI).CornerRadius=UDim.new(0,6)
-do local s=Instance.new("UIStroke",TUI); s.Color=Color3.fromRGB(120,0,188); s.ApplyStrokeMode=Enum.ApplyStrokeMode.Fim da fronteira
+TUI.Name="ToggleUI"; TUI.Position=UDim2.new(0.5,-18,0,12)
+Instance.new("UICorner",TUI).CornerRadius=UDim.new(0,6)
+do local s=Instance.new("UIStroke",TUI); s.Color=Color3.fromRGB(120,0,188); s.ApplyStrokeMode=Enum.ApplyStrokeMode.Border end
 
 -- FloatBtn (40% transparente)
 local FloatBtn=Instance.new("TextButton",SG)
 FloatBtn.BorderSizePixel=0; FloatBtn.TextSize=13
-FloatBtn.TextColor3=Color3.fromRGB(205.137.255)
+FloatBtn.TextColor3=Color3.fromRGB(205,137,255)
 FloatBtn.BackgroundColor3=Color3.fromRGB(14,0,22)
-FloatBtn.Transparência de fundo=0,4
-FloatBtn.FontFace=Font.new("rbxasset://fontes/famílias/GothamSSm.json",Enum.FontWeight.Bold)
+FloatBtn.BackgroundTransparency=0.4
+FloatBtn.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold)
 FloatBtn.ZIndex=5; FloatBtn.Size=UDim2.new(0,90,0,40)
-FloatBtn.Text="Tiro automático"; FloatBtn.Name="FloatBtn"
-FloatBtn.Visível=falso; FloatBtn.Posição=UDim2.new(0,20,0,130)
-Instância.new("UICorner",FloatBtn).CornerRadius=UDim.new(0,6)
-do local s=Instance.new("UIStroke",FloatBtn); s.Color=Color3.fromRGB(86,0,171); s.ApplyStrokeMode=Enum.ApplyStrokeMode.Fronter end
+FloatBtn.Text="Auto Shot"; FloatBtn.Name="FloatBtn"
+FloatBtn.Visible=false; FloatBtn.Position=UDim2.new(0,20,0,130)
+Instance.new("UICorner",FloatBtn).CornerRadius=UDim.new(0,6)
+do local s=Instance.new("UIStroke",FloatBtn); s.Color=Color3.fromRGB(86,0,171); s.ApplyStrokeMode=Enum.ApplyStrokeMode.Border end
 
--- Janela
+-- Window
 local Win=Instance.new("Frame",SG)
 Win.Active=true; Win.BorderSizePixel=0
-Win.BackgroundColor3=Color3.fromRGB(3,3,3); Win.AnchorPoint=Vector2.new(0,5,0,5)
+Win.BackgroundColor3=Color3.fromRGB(3,3,3); Win.AnchorPoint=Vector2.new(0.5,0.5)
 Win.ClipsDescendants=true; Win.Size=UDim2.new(0,580,0,460)
-Win.Position=UDim2.new(0,5,0,0,5,0); Win.Name="Janela"
-Instância.new("UICorner",Win)
-faça local s=Instance.new("UIStroke",Win); s.Color=Color3.fromRGB(32,0,54); s.ApplyStrokeMode=Enum.ApplyStrokeMode.Fronter end
+Win.Position=UDim2.new(0.5,0,0.5,0); Win.Name="Window"
+Instance.new("UICorner",Win)
+do local s=Instance.new("UIStroke",Win); s.Color=Color3.fromRGB(32,0,54); s.ApplyStrokeMode=Enum.ApplyStrokeMode.Border end
 local MainScale=Instance.new("UIScale",Win); MainScale.Name="MainScale"
 
--- Barra de título
+-- Titlebar
 local Tbar=Instance.new("Frame",Win)
-Tbar.Active=verdadeiro; Tbar.ZIndex=3; Tbar.BorderSizePixel=0
+Tbar.Active=true; Tbar.ZIndex=3; Tbar.BorderSizePixel=0
 Tbar.BackgroundColor3=Color3.fromRGB(3,3,3); Tbar.Size=UDim2.new(1,0,0,44)
-Tbar.Name="Barra de título"; Tbar.BackgroundTransparency=1
-faça local f=Instance.new("Frame",Tbar); f.BorderSizePixel=0; f.BackgroundColor3=Color3.fromRGB(23,0,38); f.Size=UDim2.new(1,0,0,1); f.Position=UDim2.new(0,0,1,-1); f.Name="TDiv" fim
-do local g=Instance.new("ImageLabel",Tbar); g.BorderSizePixel=0; g.ScaleType=Enum.ScaleType.Fit; g.BackgroundColor3=Color3.fromRGB(0,0,0); g.Image="rbxassetid://121724126392757"; g.Size=UDim2.new(0,28,0,28); g.Name="Logotipo"; g.Position=UDim2.new(0,10,0,8); Instance.new("UICorner",g).CornerRadius=UDim.new(0,4) fim
-do local t=Instance.new("TextLabel",Tbar); t.TextSize=14; t.TextXAlignment=Enum.TextXAlignment.Left; t.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold); t.TextColor3=Color3.fromRGB(177,107,239); t.BackgroundTransparency=1; t.Size=UDim2.new(0,200,0,16); t.Text="Khaos Hub"; t.Name="TitleName"; t.Position=UDim2.new(0,46,0,6) fim
-faça local t=Instance.new("TextLabel",Tbar); t.TextSize=10; t.TextXAlignment=Enum.TextXAlignment.Left; t.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular); t.TextColor3=Color3.fromRGB(120,52,171); t.BackgroundTransparency=1; t.Size=UDim2.new(0,200,0,12); t.Text="por kw"; t.Name="TitleSub"; t.Position=UDim2.new(0,46,0,24) fim
+Tbar.Name="Titlebar"; Tbar.BackgroundTransparency=1
+do local f=Instance.new("Frame",Tbar); f.BorderSizePixel=0; f.BackgroundColor3=Color3.fromRGB(23,0,38); f.Size=UDim2.new(1,0,0,1); f.Position=UDim2.new(0,0,1,-1); f.Name="TDiv" end
+do local g=Instance.new("ImageLabel",Tbar); g.BorderSizePixel=0; g.ScaleType=Enum.ScaleType.Fit; g.BackgroundColor3=Color3.fromRGB(0,0,0); g.Image="rbxassetid://121724126392757"; g.Size=UDim2.new(0,28,0,28); g.Name="Logo"; g.Position=UDim2.new(0,10,0,8); Instance.new("UICorner",g).CornerRadius=UDim.new(0,4) end
+do local t=Instance.new("TextLabel",Tbar); t.TextSize=14; t.TextXAlignment=Enum.TextXAlignment.Left; t.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold); t.TextColor3=Color3.fromRGB(177,107,239); t.BackgroundTransparency=1; t.Size=UDim2.new(0,200,0,16); t.Text="Khaos Hub"; t.Name="TitleName"; t.Position=UDim2.new(0,46,0,6) end
+do local t=Instance.new("TextLabel",Tbar); t.TextSize=10; t.TextXAlignment=Enum.TextXAlignment.Left; t.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular); t.TextColor3=Color3.fromRGB(120,52,171); t.BackgroundTransparency=1; t.Size=UDim2.new(0,200,0,12); t.Text="by kw"; t.Name="TitleSub"; t.Position=UDim2.new(0,46,0,24) end
 local CloseBtn=Instance.new("TextButton",Tbar)
-FecharBtn.BorderSizePixel=0; FecharBtn.TextSize=11
-FecharBtn.TextColor3=Cor3.deRGB(205,52,52); FecharBtn.BackgroundColor3=Cor3.deRGB(27,0,0)
-CloseBtn.FontFace=Font.new("rbxasset://fontes/famílias/GothamSSm.json",Enum.FontWeight.Bold)
-FecharBtn.Tamanho=UDim2.novo(0,20,0,20); FecharBtn.Texto="X"
-FecharBtn.Nome="FecharBtn"; FecharBtn.Posição=UDim2.new(1,-30,0,12)
-Instância.new("UICorner",CloseBtn).CornerRadius=UDim.new(0,3)
-do local s=Instance.new("UIStroke",CloseBtn); s.Color=Color3.fromRGB(75,0,0); s.ApplyStrokeMode=Enum.ApplyStrokeMode.Fim da fronteira
+CloseBtn.BorderSizePixel=0; CloseBtn.TextSize=11
+CloseBtn.TextColor3=Color3.fromRGB(205,52,52); CloseBtn.BackgroundColor3=Color3.fromRGB(27,0,0)
+CloseBtn.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold)
+CloseBtn.Size=UDim2.new(0,20,0,20); CloseBtn.Text="X"
+CloseBtn.Name="CloseBtn"; CloseBtn.Position=UDim2.new(1,-30,0,12)
+Instance.new("UICorner",CloseBtn).CornerRadius=UDim.new(0,3)
+do local s=Instance.new("UIStroke",CloseBtn); s.Color=Color3.fromRGB(75,0,0); s.ApplyStrokeMode=Enum.ApplyStrokeMode.Border end
 
--- Corpo
+-- Body
 local Body=Instance.new("Frame",Win)
-Corpo.BorderSizePixel=0; Corpo.Tamanho=UDim2.new(1,0,1,-44)
-Corpo.Posição=UDim2.new(0,0,0,44); Corpo.Nome="Corpo"; Corpo.TransparênciaDeFundo=1
-faça local f=Instance.new("Frame",Body); f.BorderSizePixel=0; f.BackgroundColor3=Color3.fromRGB(23,0,38); f.Size=UDim2.new(0,1,0,416); f.Position=UDim2.new(0,134,0,0); f.Name="SideDiv" fim
-Barra lateral local=Instance.new("Frame",Body); Barra lateral.BorderSizePixel=0; Barra lateral.Size=UDim2.new(0,135,0,416); Barra lateral.Name="Barra lateral"; Barra lateral.BackgroundTransparency=1
-TUI.Image="rbxassetid://109958086553778"; TUI.Size=UDim2.new(0,36,0,36)
+Body.BorderSizePixel=0; Body.Size=UDim2.new(1,0,1,-44)
+Body.Position=UDim2.new(0,0,0,44); Body.Name="Body"; Body.BackgroundTransparency=1
+do local f=Instance.new("Frame",Body); f.BorderSizePixel=0; f.BackgroundColor3=Color3.fromRGB(23,0,38); f.Size=UDim2.new(0,1,0,416); f.Position=UDim2.new(0,134,0,0); f.Name="SideDiv" end
+local Sidebar=Instance.new("Frame",Body); Sidebar.BorderSizePixel=0; Sidebar.Size=UDim2.new(0,135,0,416); Sidebar.Name="Sidebar"; Sidebar.BackgroundTransparency=1
+local SideList=Instance.new("ScrollingFrame",Sidebar)
 SideList.ScrollingDirection=Enum.ScrollingDirection.Y; SideList.BorderSizePixel=0
-SideList.CanvasSize=UDim2.new(0,0,0,0); SideList.Name="Lista Lateral"
+SideList.CanvasSize=UDim2.new(0,0,0,0); SideList.Name="SideList"
 SideList.AutomaticCanvasSize=Enum.AutomaticSize.Y; SideList.Size=UDim2.new(1,0,1,0)
 SideList.ScrollBarImageColor3=Color3.fromRGB(81,0,131); SideList.ScrollBarThickness=3
-SideList.Transparência de fundo=1
-faça local l=Instance.new("UIListLayout",SideList); l.Padding=UDim.new(0,4); l.SortOrder=Enum.SortOrder.LayoutOrder fim
-faça local p=Instance.new("UIPadding",SideList); p.PaddingTop=UDim.new(0,6); p.PaddingBottom=UDim.new(0,6) fim
+SideList.BackgroundTransparency=1
+do local l=Instance.new("UIListLayout",SideList); l.Padding=UDim.new(0,4); l.SortOrder=Enum.SortOrder.LayoutOrder end
+do local p=Instance.new("UIPadding",SideList); p.PaddingTop=UDim.new(0,6); p.PaddingBottom=UDim.new(0,6) end
 
-função local makeTabBtn(nome,ícone,rótulo,pedido)
- local btn=Instance.new("TextButton",SideList)
- btn.BorderSizePixel=0; btn.AutoButtonColor=falso
- btn.BackgroundColor3=Color3.fromRGB(3,3,3); btn.Size=UDim2.new(1,0,0,36)
- btn.LayoutOrder=ordem; btn.Text=""; btn.Name=nome.."TabBtn"
- local ind=Instance.new("Frame",btn); ind.Visível=falso
- ind.BackgroundColor3=Color3.fromRGB(120,0,188); ind.Size=UDim2.new(0,2,0,36); ind.Name="Indicador"
- local ico=Instance.new("ImageLabel",btn); ico.ScaleType=Enum.ScaleType.Fit; ico.Image=icon
- ico.Size=UDim2.new(0,16,0,16); ico.BackgroundTransparency=1; ico.Name="Ícone"; ico.Position=UDim2.new(0,10,0,10)
- local lbl=Instance.new("TextLabel",btn); lbl.TextSize=12; lbl.TextXAlignment=Enum.TextXAlignment.Left
- lbl.FontFace=Font.new("rbxasset://fontes/famílias/GothamSSm.json",Enum.FontWeight.Regular)
- lbl.TextColor3=Color3.fromRGB(69,69,69); lbl.BackgroundTransparency=1
-do local s=Instance.new("UIStroke",FloatBtn); s.Color=Color3.fromRGB(86,0,171); s.ApplyStrokeMode=Enum.ApplyStrokeMode.Fronter end
- local arr=Instance.new("TextLabel",btn); arr.TextSize=12
- arr.FontFace=Font.new("rbxasset://fontes/famílias/GothamSSm.json",Enum.FontWeight.Bold)
- arr.TextColor3=Color3.fromRGB(69,69,69); arr.BackgroundTransparency=1
- arr.Tamanho=UDim2.new(0,10,0,20); arr.Texto=">"; arr.Nome="Seta"; arr.Posição=UDim2.new(1,-18,0,8)
- retornar btn
-fim
-makeTabBtn("Xerife","rbxassetid://10734975486","Xerife",1)
+local function makeTabBtn(name,icon,label,order)
+    local btn=Instance.new("TextButton",SideList)
+    btn.BorderSizePixel=0; btn.AutoButtonColor=false
+    btn.BackgroundColor3=Color3.fromRGB(3,3,3); btn.Size=UDim2.new(1,0,0,36)
+    btn.LayoutOrder=order; btn.Text=""; btn.Name=name.."TabBtn"
+    local ind=Instance.new("Frame",btn); ind.Visible=false
+    ind.BackgroundColor3=Color3.fromRGB(120,0,188); ind.Size=UDim2.new(0,2,0,36); ind.Name="Indicator"
+    local ico=Instance.new("ImageLabel",btn); ico.ScaleType=Enum.ScaleType.Fit; ico.Image=icon
+    ico.Size=UDim2.new(0,16,0,16); ico.BackgroundTransparency=1; ico.Name="Icon"; ico.Position=UDim2.new(0,10,0,10)
+    local lbl=Instance.new("TextLabel",btn); lbl.TextSize=12; lbl.TextXAlignment=Enum.TextXAlignment.Left
+    lbl.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
+    lbl.TextColor3=Color3.fromRGB(69,69,69); lbl.BackgroundTransparency=1
+    lbl.Size=UDim2.new(0,85,0,20); lbl.Text=label; lbl.Name="Label"; lbl.Position=UDim2.new(0,30,0,8)
+    local arr=Instance.new("TextLabel",btn); arr.TextSize=12
+    arr.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold)
+    arr.TextColor3=Color3.fromRGB(69,69,69); arr.BackgroundTransparency=1
+    arr.Size=UDim2.new(0,10,0,20); arr.Text=">"; arr.Name="Arrow"; arr.Position=UDim2.new(1,-18,0,8)
+    return btn
+end
+makeTabBtn("Sheriff","rbxassetid://10734975486","Sheriff",1)
 makeTabBtn("Visual","rbxassetid://10723346959","Visual",2)
-local MainScale=Instance.new("UIScale",Win); MainScale.Name="MainScale"
-local Win=Instance.new("Frame",SG)
+makeTabBtn("Player","rbxassetid://10747373176","Player",3)
+makeTabBtn("Settings","rbxassetid://10734950309","Settings",4)
 
-do local s=Instance.new("UIStroke",FloatBtn); s.Color=Color3.fromRGB(86,0,171); s.ApplyStrokeMode=Enum.ApplyStrokeMode.Fronter end
+local Cont=Instance.new("Frame",Body)
 Cont.BorderSizePixel=0; Cont.Size=UDim2.new(1,-135,1,0)
 Cont.Position=UDim2.new(0,135,0,0); Cont.Name="ContentArea"; Cont.BackgroundTransparency=1
 
@@ -129,8 +130,8 @@ local function mkS(p,c,m) local s=Instance.new("UIStroke",p);s.Color=c;s.ApplySt
 local function makeToggle(parent,xPos,isOn)
     local tf=Instance.new("Frame",parent)
     tf.BorderSizePixel=0
-FecharBtn.Tamanho=UDim2.novo(0,20,0,20); FecharBtn.Texto="X"
-local Win=Instance.new("Frame",SG)
+    tf.BackgroundColor3=isOn and Color3.fromRGB(62,0,108) or Color3.fromRGB(18,18,18)
+    tf.Size=UDim2.new(0,34,0,18); tf.Position=xPos or UDim2.new(1,-54,0.5,-9)
     tf.Name="ToggleFrame"; tf:SetAttribute("IsOn",isOn or false); corner(tf,9)
     mkS(tf,isOn and Color3.fromRGB(120,0,188) or Color3.fromRGB(35,0,57))
     local knob=Instance.new("Frame",tf); knob.BorderSizePixel=0
@@ -140,7 +141,7 @@ local Win=Instance.new("Frame",SG)
     knob.Name="Knob"; corner(knob,6); return tf
 end
 
-Barra lateral local=Instance.new("Frame",Body); Barra lateral.BorderSizePixel=0; Barra lateral.Size=UDim2.new(0,135,0,416); Barra lateral.Name="Barra lateral"; Barra lateral.BackgroundTransparency=1
+local function makeCat(page,name,title,order,icon)
     local cat=Instance.new("Frame",page)
     cat.BorderSizePixel=0; cat.BackgroundColor3=Color3.fromRGB(5,5,5)
     cat.AutomaticSize=Enum.AutomaticSize.Y; cat.Size=UDim2.new(1,0,0,32)
