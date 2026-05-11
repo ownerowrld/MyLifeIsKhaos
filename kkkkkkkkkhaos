@@ -2,6 +2,8 @@
 --  KhaosHub | MM2
 -- ================================================================
 
+local _ui = {} -- setters UI
+
 do
     local pg = pcall(function() return game:GetService("CoreGui") end) and game:GetService("CoreGui") or game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
     local old = pg:FindFirstChild("KhaosHub")
@@ -14,7 +16,6 @@ local UIS        = game:GetService("UserInputService")
 local TS         = game:GetService("TweenService")
 local CAS        = game:GetService("ContextActionService")
 local LP         = Players.LocalPlayer
-local _ui        = {}  -- setters de UI (capturados após criação dos componentes)
 
 -- ScreenGui
 local SG = Instance.new("ScreenGui")
@@ -23,99 +24,99 @@ SG.Name="KhaosHub"; SG.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
 SG.ResetOnSpawn=false
 do
     local ok,cg=pcall(function() return game:GetService("CoreGui") end)
-    SG.Parent = ok and cg or LP:WaitForChild("PlayerGui")
-end
+ SG.Parent = ok e cg ou LP:WaitForChild("PlayerGui")
+fim
 
--- ToggleUI
+-- AlternarUI
 local TUI=Instance.new("ImageButton",SG)
 TUI.BorderSizePixel=0; TUI.ScaleType=Enum.ScaleType.Fit
 TUI.BackgroundColor3=Color3.fromRGB(3,3,3); TUI.ZIndex=10
 TUI.Image="rbxassetid://109958086553778"; TUI.Size=UDim2.new(0,36,0,36)
-TUI.Name="ToggleUI"; TUI.Position=UDim2.new(0.5,-18,0,12)
-Instance.new("UICorner",TUI).CornerRadius=UDim.new(0,6)
-do local s=Instance.new("UIStroke",TUI); s.Color=Color3.fromRGB(120,0,188); s.ApplyStrokeMode=Enum.ApplyStrokeMode.Border end
+TUI.Name="ToggleUI"; TUI.Position=UDim2.new(0,5,-18,0,12)
+Instância.new("UICorner",TUI).CornerRadius=UDim.new(0,6)
+do local s=Instance.new("UIStroke",TUI); s.Color=Color3.fromRGB(120,0,188); s.ApplyStrokeMode=Enum.ApplyStrokeMode.Fim da fronteira
 
 -- FloatBtn (40% transparente)
 local FloatBtn=Instance.new("TextButton",SG)
 FloatBtn.BorderSizePixel=0; FloatBtn.TextSize=13
-FloatBtn.TextColor3=Color3.fromRGB(205,137,255)
+FloatBtn.TextColor3=Color3.fromRGB(205.137.255)
 FloatBtn.BackgroundColor3=Color3.fromRGB(14,0,22)
-FloatBtn.BackgroundTransparency=0.4
-FloatBtn.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold)
+FloatBtn.Transparência de fundo=0,4
+FloatBtn.FontFace=Font.new("rbxasset://fontes/famílias/GothamSSm.json",Enum.FontWeight.Bold)
 FloatBtn.ZIndex=5; FloatBtn.Size=UDim2.new(0,90,0,40)
-FloatBtn.Text="Auto Shot"; FloatBtn.Name="FloatBtn"
-FloatBtn.Visible=false; FloatBtn.Position=UDim2.new(0,20,0,130)
-Instance.new("UICorner",FloatBtn).CornerRadius=UDim.new(0,6)
-do local s=Instance.new("UIStroke",FloatBtn); s.Color=Color3.fromRGB(86,0,171); s.ApplyStrokeMode=Enum.ApplyStrokeMode.Border end
+FloatBtn.Text="Tiro automático"; FloatBtn.Name="FloatBtn"
+FloatBtn.Visível=falso; FloatBtn.Posição=UDim2.new(0,20,0,130)
+Instância.new("UICorner",FloatBtn).CornerRadius=UDim.new(0,6)
+do local s=Instance.new("UIStroke",FloatBtn); s.Color=Color3.fromRGB(86,0,171); s.ApplyStrokeMode=Enum.ApplyStrokeMode.Fronter end
 
--- Window
+-- Janela
 local Win=Instance.new("Frame",SG)
 Win.Active=true; Win.BorderSizePixel=0
-Win.BackgroundColor3=Color3.fromRGB(3,3,3); Win.AnchorPoint=Vector2.new(0.5,0.5)
+Win.BackgroundColor3=Color3.fromRGB(3,3,3); Win.AnchorPoint=Vector2.new(0,5,0,5)
 Win.ClipsDescendants=true; Win.Size=UDim2.new(0,580,0,460)
-Win.Position=UDim2.new(0.5,0,0.5,0); Win.Name="Window"
-Instance.new("UICorner",Win)
-do local s=Instance.new("UIStroke",Win); s.Color=Color3.fromRGB(32,0,54); s.ApplyStrokeMode=Enum.ApplyStrokeMode.Border end
+Win.Position=UDim2.new(0,5,0,0,5,0); Win.Name="Janela"
+Instância.new("UICorner",Win)
+faça local s=Instance.new("UIStroke",Win); s.Color=Color3.fromRGB(32,0,54); s.ApplyStrokeMode=Enum.ApplyStrokeMode.Fronter end
 local MainScale=Instance.new("UIScale",Win); MainScale.Name="MainScale"
 
--- Titlebar
+-- Barra de título
 local Tbar=Instance.new("Frame",Win)
-Tbar.Active=true; Tbar.ZIndex=3; Tbar.BorderSizePixel=0
+Tbar.Active=verdadeiro; Tbar.ZIndex=3; Tbar.BorderSizePixel=0
 Tbar.BackgroundColor3=Color3.fromRGB(3,3,3); Tbar.Size=UDim2.new(1,0,0,44)
-Tbar.Name="Titlebar"; Tbar.BackgroundTransparency=1
-do local f=Instance.new("Frame",Tbar); f.BorderSizePixel=0; f.BackgroundColor3=Color3.fromRGB(23,0,38); f.Size=UDim2.new(1,0,0,1); f.Position=UDim2.new(0,0,1,-1); f.Name="TDiv" end
-do local g=Instance.new("ImageLabel",Tbar); g.BorderSizePixel=0; g.ScaleType=Enum.ScaleType.Fit; g.BackgroundColor3=Color3.fromRGB(0,0,0); g.Image="rbxassetid://121724126392757"; g.Size=UDim2.new(0,28,0,28); g.Name="Logo"; g.Position=UDim2.new(0,10,0,8); Instance.new("UICorner",g).CornerRadius=UDim.new(0,4) end
-do local t=Instance.new("TextLabel",Tbar); t.TextSize=14; t.TextXAlignment=Enum.TextXAlignment.Left; t.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold); t.TextColor3=Color3.fromRGB(177,107,239); t.BackgroundTransparency=1; t.Size=UDim2.new(0,200,0,16); t.Text="Khaos Hub"; t.Name="TitleName"; t.Position=UDim2.new(0,46,0,6) end
-do local t=Instance.new("TextLabel",Tbar); t.TextSize=10; t.TextXAlignment=Enum.TextXAlignment.Left; t.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular); t.TextColor3=Color3.fromRGB(120,52,171); t.BackgroundTransparency=1; t.Size=UDim2.new(0,200,0,12); t.Text="by kw"; t.Name="TitleSub"; t.Position=UDim2.new(0,46,0,24) end
+Tbar.Name="Barra de título"; Tbar.BackgroundTransparency=1
+faça local f=Instance.new("Frame",Tbar); f.BorderSizePixel=0; f.BackgroundColor3=Color3.fromRGB(23,0,38); f.Size=UDim2.new(1,0,0,1); f.Position=UDim2.new(0,0,1,-1); f.Name="TDiv" fim
+do local g=Instance.new("ImageLabel",Tbar); g.BorderSizePixel=0; g.ScaleType=Enum.ScaleType.Fit; g.BackgroundColor3=Color3.fromRGB(0,0,0); g.Image="rbxassetid://121724126392757"; g.Size=UDim2.new(0,28,0,28); g.Name="Logotipo"; g.Position=UDim2.new(0,10,0,8); Instance.new("UICorner",g).CornerRadius=UDim.new(0,4) fim
+do local t=Instance.new("TextLabel",Tbar); t.TextSize=14; t.TextXAlignment=Enum.TextXAlignment.Left; t.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold); t.TextColor3=Color3.fromRGB(177,107,239); t.BackgroundTransparency=1; t.Size=UDim2.new(0,200,0,16); t.Text="Khaos Hub"; t.Name="TitleName"; t.Position=UDim2.new(0,46,0,6) fim
+faça local t=Instance.new("TextLabel",Tbar); t.TextSize=10; t.TextXAlignment=Enum.TextXAlignment.Left; t.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular); t.TextColor3=Color3.fromRGB(120,52,171); t.BackgroundTransparency=1; t.Size=UDim2.new(0,200,0,12); t.Text="por kw"; t.Name="TitleSub"; t.Position=UDim2.new(0,46,0,24) fim
 local CloseBtn=Instance.new("TextButton",Tbar)
-CloseBtn.BorderSizePixel=0; CloseBtn.TextSize=11
-CloseBtn.TextColor3=Color3.fromRGB(205,52,52); CloseBtn.BackgroundColor3=Color3.fromRGB(27,0,0)
-CloseBtn.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold)
-CloseBtn.Size=UDim2.new(0,20,0,20); CloseBtn.Text="X"
-CloseBtn.Name="CloseBtn"; CloseBtn.Position=UDim2.new(1,-30,0,12)
-Instance.new("UICorner",CloseBtn).CornerRadius=UDim.new(0,3)
-do local s=Instance.new("UIStroke",CloseBtn); s.Color=Color3.fromRGB(75,0,0); s.ApplyStrokeMode=Enum.ApplyStrokeMode.Border end
+FecharBtn.BorderSizePixel=0; FecharBtn.TextSize=11
+FecharBtn.TextColor3=Cor3.deRGB(205,52,52); FecharBtn.BackgroundColor3=Cor3.deRGB(27,0,0)
+CloseBtn.FontFace=Font.new("rbxasset://fontes/famílias/GothamSSm.json",Enum.FontWeight.Bold)
+FecharBtn.Tamanho=UDim2.novo(0,20,0,20); FecharBtn.Texto="X"
+FecharBtn.Nome="FecharBtn"; FecharBtn.Posição=UDim2.new(1,-30,0,12)
+Instância.new("UICorner",CloseBtn).CornerRadius=UDim.new(0,3)
+do local s=Instance.new("UIStroke",CloseBtn); s.Color=Color3.fromRGB(75,0,0); s.ApplyStrokeMode=Enum.ApplyStrokeMode.Fim da fronteira
 
--- Body
+-- Corpo
 local Body=Instance.new("Frame",Win)
-Body.BorderSizePixel=0; Body.Size=UDim2.new(1,0,1,-44)
-Body.Position=UDim2.new(0,0,0,44); Body.Name="Body"; Body.BackgroundTransparency=1
-do local f=Instance.new("Frame",Body); f.BorderSizePixel=0; f.BackgroundColor3=Color3.fromRGB(23,0,38); f.Size=UDim2.new(0,1,0,416); f.Position=UDim2.new(0,134,0,0); f.Name="SideDiv" end
-local Sidebar=Instance.new("Frame",Body); Sidebar.BorderSizePixel=0; Sidebar.Size=UDim2.new(0,135,0,416); Sidebar.Name="Sidebar"; Sidebar.BackgroundTransparency=1
-local SideList=Instance.new("ScrollingFrame",Sidebar)
+Corpo.BorderSizePixel=0; Corpo.Tamanho=UDim2.new(1,0,1,-44)
+Corpo.Posição=UDim2.new(0,0,0,44); Corpo.Nome="Corpo"; Corpo.TransparênciaDeFundo=1
+faça local f=Instance.new("Frame",Body); f.BorderSizePixel=0; f.BackgroundColor3=Color3.fromRGB(23,0,38); f.Size=UDim2.new(0,1,0,416); f.Position=UDim2.new(0,134,0,0); f.Name="SideDiv" fim
+Barra lateral local=Instance.new("Frame",Body); Barra lateral.BorderSizePixel=0; Barra lateral.Size=UDim2.new(0,135,0,416); Barra lateral.Name="Barra lateral"; Barra lateral.BackgroundTransparency=1
+TUI.Image="rbxassetid://109958086553778"; TUI.Size=UDim2.new(0,36,0,36)
 SideList.ScrollingDirection=Enum.ScrollingDirection.Y; SideList.BorderSizePixel=0
-SideList.CanvasSize=UDim2.new(0,0,0,0); SideList.Name="SideList"
+SideList.CanvasSize=UDim2.new(0,0,0,0); SideList.Name="Lista Lateral"
 SideList.AutomaticCanvasSize=Enum.AutomaticSize.Y; SideList.Size=UDim2.new(1,0,1,0)
 SideList.ScrollBarImageColor3=Color3.fromRGB(81,0,131); SideList.ScrollBarThickness=3
-SideList.BackgroundTransparency=1
-do local l=Instance.new("UIListLayout",SideList); l.Padding=UDim.new(0,4); l.SortOrder=Enum.SortOrder.LayoutOrder end
-do local p=Instance.new("UIPadding",SideList); p.PaddingTop=UDim.new(0,6); p.PaddingBottom=UDim.new(0,6) end
+SideList.Transparência de fundo=1
+faça local l=Instance.new("UIListLayout",SideList); l.Padding=UDim.new(0,4); l.SortOrder=Enum.SortOrder.LayoutOrder fim
+faça local p=Instance.new("UIPadding",SideList); p.PaddingTop=UDim.new(0,6); p.PaddingBottom=UDim.new(0,6) fim
 
-local function makeTabBtn(name,icon,label,order)
-    local btn=Instance.new("TextButton",SideList)
-    btn.BorderSizePixel=0; btn.AutoButtonColor=false
-    btn.BackgroundColor3=Color3.fromRGB(3,3,3); btn.Size=UDim2.new(1,0,0,36)
-    btn.LayoutOrder=order; btn.Text=""; btn.Name=name.."TabBtn"
-    local ind=Instance.new("Frame",btn); ind.Visible=false
-    ind.BackgroundColor3=Color3.fromRGB(120,0,188); ind.Size=UDim2.new(0,2,0,36); ind.Name="Indicator"
-    local ico=Instance.new("ImageLabel",btn); ico.ScaleType=Enum.ScaleType.Fit; ico.Image=icon
-    ico.Size=UDim2.new(0,16,0,16); ico.BackgroundTransparency=1; ico.Name="Icon"; ico.Position=UDim2.new(0,10,0,10)
-    local lbl=Instance.new("TextLabel",btn); lbl.TextSize=12; lbl.TextXAlignment=Enum.TextXAlignment.Left
-    lbl.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
-    lbl.TextColor3=Color3.fromRGB(69,69,69); lbl.BackgroundTransparency=1
-    lbl.Size=UDim2.new(0,85,0,20); lbl.Text=label; lbl.Name="Label"; lbl.Position=UDim2.new(0,30,0,8)
-    local arr=Instance.new("TextLabel",btn); arr.TextSize=12
-    arr.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold)
-    arr.TextColor3=Color3.fromRGB(69,69,69); arr.BackgroundTransparency=1
-    arr.Size=UDim2.new(0,10,0,20); arr.Text=">"; arr.Name="Arrow"; arr.Position=UDim2.new(1,-18,0,8)
-    return btn
-end
-makeTabBtn("Sheriff","rbxassetid://10734975486","Sheriff",1)
+função local makeTabBtn(nome,ícone,rótulo,pedido)
+ local btn=Instance.new("TextButton",SideList)
+ btn.BorderSizePixel=0; btn.AutoButtonColor=falso
+ btn.BackgroundColor3=Color3.fromRGB(3,3,3); btn.Size=UDim2.new(1,0,0,36)
+ btn.LayoutOrder=ordem; btn.Text=""; btn.Name=nome.."TabBtn"
+ local ind=Instance.new("Frame",btn); ind.Visível=falso
+ ind.BackgroundColor3=Color3.fromRGB(120,0,188); ind.Size=UDim2.new(0,2,0,36); ind.Name="Indicador"
+ local ico=Instance.new("ImageLabel",btn); ico.ScaleType=Enum.ScaleType.Fit; ico.Image=icon
+ ico.Size=UDim2.new(0,16,0,16); ico.BackgroundTransparency=1; ico.Name="Ícone"; ico.Position=UDim2.new(0,10,0,10)
+ local lbl=Instance.new("TextLabel",btn); lbl.TextSize=12; lbl.TextXAlignment=Enum.TextXAlignment.Left
+ lbl.FontFace=Font.new("rbxasset://fontes/famílias/GothamSSm.json",Enum.FontWeight.Regular)
+ lbl.TextColor3=Color3.fromRGB(69,69,69); lbl.BackgroundTransparency=1
+do local s=Instance.new("UIStroke",FloatBtn); s.Color=Color3.fromRGB(86,0,171); s.ApplyStrokeMode=Enum.ApplyStrokeMode.Fronter end
+ local arr=Instance.new("TextLabel",btn); arr.TextSize=12
+ arr.FontFace=Font.new("rbxasset://fontes/famílias/GothamSSm.json",Enum.FontWeight.Bold)
+ arr.TextColor3=Color3.fromRGB(69,69,69); arr.BackgroundTransparency=1
+ arr.Tamanho=UDim2.new(0,10,0,20); arr.Texto=">"; arr.Nome="Seta"; arr.Posição=UDim2.new(1,-18,0,8)
+ retornar btn
+fim
+makeTabBtn("Xerife","rbxassetid://10734975486","Xerife",1)
 makeTabBtn("Visual","rbxassetid://10723346959","Visual",2)
-makeTabBtn("Player","rbxassetid://10747373176","Player",3)
-makeTabBtn("Settings","rbxassetid://10734950309","Settings",4)
+local MainScale=Instance.new("UIScale",Win); MainScale.Name="MainScale"
+local Win=Instance.new("Frame",SG)
 
-local Cont=Instance.new("Frame",Body)
+do local s=Instance.new("UIStroke",FloatBtn); s.Color=Color3.fromRGB(86,0,171); s.ApplyStrokeMode=Enum.ApplyStrokeMode.Fronter end
 Cont.BorderSizePixel=0; Cont.Size=UDim2.new(1,-135,1,0)
 Cont.Position=UDim2.new(0,135,0,0); Cont.Name="ContentArea"; Cont.BackgroundTransparency=1
 
@@ -128,8 +129,8 @@ local function mkS(p,c,m) local s=Instance.new("UIStroke",p);s.Color=c;s.ApplySt
 local function makeToggle(parent,xPos,isOn)
     local tf=Instance.new("Frame",parent)
     tf.BorderSizePixel=0
-    tf.BackgroundColor3=isOn and Color3.fromRGB(62,0,108) or Color3.fromRGB(18,18,18)
-    tf.Size=UDim2.new(0,34,0,18); tf.Position=xPos or UDim2.new(1,-54,0.5,-9)
+FecharBtn.Tamanho=UDim2.novo(0,20,0,20); FecharBtn.Texto="X"
+local Win=Instance.new("Frame",SG)
     tf.Name="ToggleFrame"; tf:SetAttribute("IsOn",isOn or false); corner(tf,9)
     mkS(tf,isOn and Color3.fromRGB(120,0,188) or Color3.fromRGB(35,0,57))
     local knob=Instance.new("Frame",tf); knob.BorderSizePixel=0
@@ -139,7 +140,7 @@ local function makeToggle(parent,xPos,isOn)
     knob.Name="Knob"; corner(knob,6); return tf
 end
 
-local function makeCat(page,name,title,order,icon)
+Barra lateral local=Instance.new("Frame",Body); Barra lateral.BorderSizePixel=0; Barra lateral.Size=UDim2.new(0,135,0,416); Barra lateral.Name="Barra lateral"; Barra lateral.BackgroundTransparency=1
     local cat=Instance.new("Frame",page)
     cat.BorderSizePixel=0; cat.BackgroundColor3=Color3.fromRGB(5,5,5)
     cat.AutomaticSize=Enum.AutomaticSize.Y; cat.Size=UDim2.new(1,0,0,32)
@@ -394,14 +395,39 @@ local function makeDropdownRow(parent,order,label,options,defaultOpt,onChange)
 end
 
 -- Float+Painel row
-local function makeFloatPanelRow(parent,order,label,floatRef)
+-- Sub-função auxiliar extraída para reduzir registers
+local function _makeFCPSlider(fcp,bgN,valN,lblT,ord,minV,maxV,initP,onCh)
+    local pr=Instance.new("Frame",fcp); pr.BorderSizePixel=0; pr.Size=UDim2.new(1,0,0,24)
+    pr.Name="PR"..ord; pr.LayoutOrder=ord; pr.BackgroundTransparency=1
+    local tl=Instance.new("TextLabel",pr); tl.TextSize=10; tl.TextXAlignment=Enum.TextXAlignment.Left
+    tl.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
+    tl.TextColor3=Color3.fromRGB(86,86,86); tl.BackgroundTransparency=1; tl.Size=UDim2.new(0,55,0,24); tl.Text=lblT
+    local bg=Instance.new("Frame",pr); bg.BorderSizePixel=0; bg.BackgroundColor3=Color3.fromRGB(35,0,57)
+    bg.Size=UDim2.new(1,-90,0,4); bg.Position=UDim2.new(0,58,0,10); bg.Name=bgN; corner(bg,2)
+    local fill=Instance.new("Frame",bg); fill.BorderSizePixel=0; fill.BackgroundColor3=Color3.fromRGB(120,0,188)
+    fill.Size=UDim2.new(initP,0,1,0); fill.Name="Fill"; corner(fill,2)
+    local knob=Instance.new("Frame",bg); knob.BorderSizePixel=0; knob.BackgroundColor3=Color3.fromRGB(120,0,188)
+    knob.Size=UDim2.new(0,10,0,10); knob.Position=UDim2.new(initP,-5,0.5,-5); knob.Name="Knob"; corner(knob,5)
+    local vl=Instance.new("TextLabel",pr); vl.TextSize=10
+    vl.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
+    vl.TextColor3=Color3.fromRGB(120,69,171); vl.BackgroundTransparency=1; vl.Size=UDim2.new(0,30,0,24)
+    vl.Text=tostring(math.floor(minV+(maxV-minV)*initP)).."px"; vl.Name=valN; vl.Position=UDim2.new(1,-30,0,0)
+    local sl=false
+    local function ap(p) p=math.clamp(p,0,1); fill.Size=UDim2.new(p,0,1,0); knob.Position=UDim2.new(p,-5,0.5,-5)
+        local v=math.floor(minV+(maxV-minV)*p); vl.Text=tostring(v).."px"; if onCh then onCh(v) end end
+    bg.InputBegan:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then sl=true; ap((i.Position.X-bg.AbsolutePosition.X)/bg.AbsoluteSize.X) end end)
+    bg.InputEnded:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then sl=false end end)
+    UIS.InputChanged:Connect(function(i) if sl and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch) then ap((i.Position.X-bg.AbsolutePosition.X)/bg.AbsoluteSize.X) end end)
+end
+
+local function makeFloatPanelRow(parent,order,label,floatRef,defaultLabel)
     local item=Instance.new("Frame",parent); item.ZIndex=5; item.BorderSizePixel=0
     item.AutomaticSize=Enum.AutomaticSize.Y; item.Size=UDim2.new(1,0,0,0)
     item.Name="FloatItem"..tostring(order); item.LayoutOrder=order; item.BackgroundTransparency=1
-    local il=Instance.new("UIListLayout",item); il.SortOrder=Enum.SortOrder.LayoutOrder
-    local divEnd=Instance.new("Frame",item); divEnd.BorderSizePixel=0
-    divEnd.BackgroundColor3=Color3.fromRGB(13,13,13); divEnd.Size=UDim2.new(1,0,0,1)
-    divEnd.Name="Div"; divEnd.LayoutOrder=99
+    do local l=Instance.new("UIListLayout",item); l.SortOrder=Enum.SortOrder.LayoutOrder end
+    do local d=Instance.new("Frame",item); d.BorderSizePixel=0
+    d.BackgroundColor3=Color3.fromRGB(13,13,13); d.Size=UDim2.new(1,0,0,1)
+    d.Name="Div"; d.LayoutOrder=99 end
     local row1=Instance.new("Frame",item); row1.BorderSizePixel=0
     row1.Size=UDim2.new(1,0,0,44); row1.Name="Row1"; row1.LayoutOrder=1; row1.BackgroundTransparency=1
     makeLbl(row1,label,11)
@@ -410,74 +436,55 @@ local function makeFloatPanelRow(parent,order,label,floatRef)
     bFloat.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
     bFloat.Size=UDim2.new(0,56,0,22); bFloat.Text="Float"
     bFloat.Name="Btn_Float"; bFloat.Position=UDim2.new(1,-62,0.5,-11); corner(bFloat,3); mkS(bFloat,Color3.fromRGB(51,0,97))
-    -- FloatCfgPanel
     local fcp=Instance.new("Frame",item); fcp.Visible=false; fcp.ZIndex=10; fcp.BorderSizePixel=0
     fcp.BackgroundColor3=Color3.fromRGB(9,0,15); fcp.AutomaticSize=Enum.AutomaticSize.Y
     fcp.Size=UDim2.new(1,0,0,0); fcp.Name="FloatCfgPanel"; fcp.LayoutOrder=2; corner(fcp,4); mkS(fcp,Color3.fromRGB(23,0,38))
-    local fcpPad=Instance.new("UIPadding",fcp)
-    fcpPad.PaddingTop=UDim.new(0,8); fcpPad.PaddingRight=UDim.new(0,8)
-    fcpPad.PaddingLeft=UDim.new(0,8); fcpPad.PaddingBottom=UDim.new(0,8)
-    local fcpLL=Instance.new("UIListLayout",fcp); fcpLL.Padding=UDim.new(0,6); fcpLL.SortOrder=Enum.SortOrder.LayoutOrder
-    -- PR1 Label input
-    local pr1=Instance.new("Frame",fcp); pr1.BorderSizePixel=0; pr1.Size=UDim2.new(1,0,0,24)
-    pr1.Name="PR1"; pr1.LayoutOrder=1; pr1.BackgroundTransparency=1
-    local tl1=Instance.new("TextLabel",pr1); tl1.TextSize=10; tl1.TextXAlignment=Enum.TextXAlignment.Left
-    tl1.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
-    tl1.TextColor3=Color3.fromRGB(86,86,86); tl1.BackgroundTransparency=1; tl1.Size=UDim2.new(0,55,0,24); tl1.Text="Label"
-    local lblInp=Instance.new("TextBox",pr1); lblInp.Name="LblInp"
-    lblInp.TextXAlignment=Enum.TextXAlignment.Left; lblInp.PlaceholderColor3=Color3.fromRGB(52,52,52)
-    lblInp.BorderSizePixel=0; lblInp.TextSize=11; lblInp.TextColor3=Color3.fromRGB(171,171,171)
-    lblInp.BackgroundColor3=Color3.fromRGB(14,14,14)
-    lblInp.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
-    lblInp.ClearTextOnFocus=false; lblInp.PlaceholderText="Label..."
-    lblInp.Size=UDim2.new(1,-62,0,20); lblInp.Position=UDim2.new(0,60,0,2); lblInp.Text="Auto Shot"
-    corner(lblInp,3); mkS(lblInp,Color3.fromRGB(35,0,57))
-    if floatRef then lblInp:GetPropertyChangedSignal("Text"):Connect(function() floatRef.Text=lblInp.Text end) end
-    -- FCP sliders (Width, Height)
-    local fbLocked=false
-    local function makeFCPSl(bgN,valN,lblT,ord,minV,maxV,initP,onCh)
-        local pr=Instance.new("Frame",fcp); pr.BorderSizePixel=0; pr.Size=UDim2.new(1,0,0,24)
-        pr.Name="PR"..ord; pr.LayoutOrder=ord; pr.BackgroundTransparency=1
-        local tl=Instance.new("TextLabel",pr); tl.TextSize=10; tl.TextXAlignment=Enum.TextXAlignment.Left
+    do local p=Instance.new("UIPadding",fcp)
+    p.PaddingTop=UDim.new(0,8);p.PaddingRight=UDim.new(0,8);p.PaddingLeft=UDim.new(0,8);p.PaddingBottom=UDim.new(0,8) end
+    do local l=Instance.new("UIListLayout",fcp); l.Padding=UDim.new(0,6); l.SortOrder=Enum.SortOrder.LayoutOrder end
+    -- Label input
+    do
+        local pr1=Instance.new("Frame",fcp); pr1.BorderSizePixel=0; pr1.Size=UDim2.new(1,0,0,24)
+        pr1.Name="PR1"; pr1.LayoutOrder=1; pr1.BackgroundTransparency=1
+        do local tl=Instance.new("TextLabel",pr1); tl.TextSize=10; tl.TextXAlignment=Enum.TextXAlignment.Left
         tl.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
-        tl.TextColor3=Color3.fromRGB(86,86,86); tl.BackgroundTransparency=1; tl.Size=UDim2.new(0,55,0,24); tl.Text=lblT
-        local bg=Instance.new("Frame",pr); bg.BorderSizePixel=0; bg.BackgroundColor3=Color3.fromRGB(35,0,57)
-        bg.Size=UDim2.new(1,-90,0,4); bg.Position=UDim2.new(0,58,0,10); bg.Name=bgN; corner(bg,2)
-        local fill=Instance.new("Frame",bg); fill.BorderSizePixel=0; fill.BackgroundColor3=Color3.fromRGB(120,0,188)
-        fill.Size=UDim2.new(initP,0,1,0); fill.Name="Fill"; corner(fill,2)
-        local knob=Instance.new("Frame",bg); knob.BorderSizePixel=0; knob.BackgroundColor3=Color3.fromRGB(120,0,188)
-        knob.Size=UDim2.new(0,10,0,10); knob.Position=UDim2.new(initP,-5,0.5,-5); knob.Name="Knob"; corner(knob,5)
-        local vl=Instance.new("TextLabel",pr); vl.TextSize=10
-        vl.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
-        vl.TextColor3=Color3.fromRGB(120,69,171); vl.BackgroundTransparency=1; vl.Size=UDim2.new(0,30,0,24)
-        vl.Text=tostring(math.floor(minV+(maxV-minV)*initP)).."px"; vl.Name=valN; vl.Position=UDim2.new(1,-30,0,0)
-        local sl=false
-        local function ap(p) p=math.clamp(p,0,1); fill.Size=UDim2.new(p,0,1,0); knob.Position=UDim2.new(p,-5,0.5,-5)
-            local v=math.floor(minV+(maxV-minV)*p); vl.Text=tostring(v).."px"; if onCh then onCh(v) end end
-        bg.InputBegan:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then sl=true; ap((i.Position.X-bg.AbsolutePosition.X)/bg.AbsoluteSize.X) end end)
-        bg.InputEnded:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then sl=false end end)
-        UIS.InputChanged:Connect(function(i) if sl and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch) then ap((i.Position.X-bg.AbsolutePosition.X)/bg.AbsoluteSize.X) end end)
+        tl.TextColor3=Color3.fromRGB(86,86,86); tl.BackgroundTransparency=1; tl.Size=UDim2.new(0,55,0,24); tl.Text="Label" end
+        local lblInp=Instance.new("TextBox",pr1); lblInp.Name="LblInp"
+        lblInp.TextXAlignment=Enum.TextXAlignment.Left; lblInp.PlaceholderColor3=Color3.fromRGB(52,52,52)
+        lblInp.BorderSizePixel=0; lblInp.TextSize=11; lblInp.TextColor3=Color3.fromRGB(171,171,171)
+        lblInp.BackgroundColor3=Color3.fromRGB(14,14,14)
+        lblInp.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
+        lblInp.ClearTextOnFocus=false; lblInp.PlaceholderText="Label..."
+        lblInp.Size=UDim2.new(1,-62,0,20); lblInp.Position=UDim2.new(0,60,0,2); lblInp.Text=defaultLabel or "Auto Shot"
+        corner(lblInp,3); mkS(lblInp,Color3.fromRGB(35,0,57))
+        if floatRef then floatRef.Text=lblInp.Text; lblInp:GetPropertyChangedSignal("Text"):Connect(function() floatRef.Text=lblInp.Text end) end
     end
-    makeFCPSl("WBG","WVal","Width",2,50,200,0.27,function(v) if floatRef then floatRef.Size=UDim2.fromOffset(v,floatRef.Size.Y.Offset) end end)
-    makeFCPSl("HBG","HVal","Height",3,28,100,0.17,function(v) if floatRef then floatRef.Size=UDim2.fromOffset(floatRef.Size.X.Offset,v) end end)
-    -- PR4 Lock/Save
-    local pr4=Instance.new("Frame",fcp); pr4.BorderSizePixel=0; pr4.Size=UDim2.new(1,0,0,26)
-    pr4.Name="PR4"; pr4.LayoutOrder=4; pr4.BackgroundTransparency=1
-    local lkBtn=Instance.new("TextButton",pr4); lkBtn.BorderSizePixel=0; lkBtn.TextSize=10
-    lkBtn.TextColor3=Color3.fromRGB(69,0,103); lkBtn.BackgroundColor3=Color3.fromRGB(11,0,16)
-    lkBtn.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold)
-    lkBtn.Size=UDim2.new(0,72,0,22); lkBtn.Text="Livre"; lkBtn.Name="LockBtn"; corner(lkBtn,3); mkS(lkBtn,Color3.fromRGB(27,0,41))
-    local svBtn=Instance.new("TextButton",pr4); svBtn.BorderSizePixel=0; svBtn.TextSize=10
-    svBtn.TextColor3=Color3.fromRGB(205,137,255); svBtn.BackgroundColor3=Color3.fromRGB(62,0,108)
-    svBtn.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold)
-    svBtn.Size=UDim2.new(0,80,0,22); svBtn.Text="Save Pos"; svBtn.Name="SaveBtn"; svBtn.Position=UDim2.new(0,78,0,0)
-    corner(svBtn,3); mkS(svBtn,Color3.fromRGB(120,0,188))
-    lkBtn.MouseButton1Click:Connect(function()
-        fbLocked=not fbLocked; lkBtn.Text=fbLocked and "Travado" or "Livre"
-        lkBtn.TextColor3=fbLocked and Color3.fromRGB(119,0,187) or Color3.fromRGB(68,0,102)
-        if floatRef then floatRef:SetAttribute("Locked",fbLocked) end
-    end)
-    svBtn.MouseButton1Click:Connect(function() svBtn.Text="Salvo!"; task.delay(1.5,function() if svBtn then svBtn.Text="Save Pos" end end) end)
+    -- Sliders Width/Height (função externa para economizar registers)
+    _makeFCPSlider(fcp,"WBG","WVal","Width",2,50,200,0.27,function(v) if floatRef then floatRef.Size=UDim2.fromOffset(v,floatRef.Size.Y.Offset) end end)
+    _makeFCPSlider(fcp,"HBG","HVal","Height",3,28,100,0.17,function(v) if floatRef then floatRef.Size=UDim2.fromOffset(floatRef.Size.X.Offset,v) end end)
+    -- Lock/Save
+    do
+        local pr4=Instance.new("Frame",fcp); pr4.BorderSizePixel=0; pr4.Size=UDim2.new(1,0,0,26)
+        pr4.Name="PR4"; pr4.LayoutOrder=4; pr4.BackgroundTransparency=1
+        local lkBtn=Instance.new("TextButton",pr4); lkBtn.BorderSizePixel=0; lkBtn.TextSize=10
+        lkBtn.TextColor3=Color3.fromRGB(69,0,103); lkBtn.BackgroundColor3=Color3.fromRGB(11,0,16)
+        lkBtn.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold)
+        lkBtn.Size=UDim2.new(0,72,0,22); lkBtn.Text="Free"; lkBtn.Name="LockBtn"; corner(lkBtn,3); mkS(lkBtn,Color3.fromRGB(27,0,41))
+        local svBtn=Instance.new("TextButton",pr4); svBtn.BorderSizePixel=0; svBtn.TextSize=10
+        svBtn.TextColor3=Color3.fromRGB(205,137,255); svBtn.BackgroundColor3=Color3.fromRGB(62,0,108)
+        svBtn.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold)
+        svBtn.Size=UDim2.new(0,80,0,22); svBtn.Text="Save Pos"; svBtn.Name="SaveBtn"; svBtn.Position=UDim2.new(0,78,0,0)
+        corner(svBtn,3); mkS(svBtn,Color3.fromRGB(120,0,188))
+        local fbLocked=false
+        lkBtn.MouseButton1Click:Connect(function()
+            fbLocked=not fbLocked; lkBtn.Text=fbLocked and "Locked" or "Free"
+            lkBtn.TextColor3=fbLocked and Color3.fromRGB(119,0,187) or Color3.fromRGB(68,0,102)
+            if floatRef then floatRef:SetAttribute("Locked",fbLocked) end
+        end)
+        svBtn.MouseButton1Click:Connect(function()
+            svBtn.Text="Saved!"; task.delay(1.5,function() if svBtn then svBtn.Text="Save Pos" end end)
+        end)
+    end
     -- Toggle Float
     local isShow=false
     bFloat.MouseButton1Click:Connect(function()
@@ -1347,6 +1354,35 @@ local function applyConfigUI(t)
 end
 
 -- ================================================================
+--  DRAG SYSTEM (declarado antes do controller para ser acessível globalmente)
+-- ================================================================
+local _activeDrag = nil
+local _lockCam_fn = nil
+local _unlockCam_fn = nil
+
+local function makeFloatDraggable(btn, onTap)
+    if not btn then return end
+    btn.InputBegan:Connect(function(i)
+        if i.UserInputType~=Enum.UserInputType.MouseButton1 and i.UserInputType~=Enum.UserInputType.Touch then return end
+        if btn:GetAttribute("Locked") then if onTap then onTap() end; return end
+        if _activeDrag then return end
+        local par=btn.Parent; local pA=par and par.AbsolutePosition or Vector2.zero
+        _activeDrag={obj=btn,sX=i.Position.X,sY=i.Position.Y,
+            oX=btn.AbsolutePosition.X-pA.X,oY=btn.AbsolutePosition.Y-pA.Y,
+            moved=false,isWin=false}
+        if _lockCam_fn then _lockCam_fn() end
+    end)
+    btn.InputEnded:Connect(function(i)
+        if i.UserInputType~=Enum.UserInputType.MouseButton1 and i.UserInputType~=Enum.UserInputType.Touch then return end
+        if _activeDrag and _activeDrag.obj==btn then
+            if not _activeDrag.moved and onTap then onTap() end
+            _activeDrag=nil
+            if _unlockCam_fn then _unlockCam_fn() end
+        end
+    end)
+end
+
+-- ================================================================
 --  CONTROLLER DA UI
 -- ================================================================
 do
@@ -1377,9 +1413,8 @@ do
             if ab.X+sz.X>vp.X-8 or ab.X<8 or ab.Y+sz.Y>vp.Y-8 or ab.Y<8 then TUI.Position=UDim2.new(0.5,-18,0,12) end end)
     end)
     -- Drag system
-    local activeDrag=nil
-    local function applyDragMove(cx,cy)
-        if not activeDrag then return end; local d=activeDrag
+        local function applyDragMove(cx,cy)
+        if not _activeDrag then return end; local d=_activeDrag
         local delta=Vector2.new(cx-d.sX,cy-d.sY)
         if not d.moved and delta.Magnitude>4 then d.moved=true end
         if not d.moved then return end
@@ -1388,37 +1423,35 @@ do
             nX=sClamp(nX,sw*0.5+MARGIN,vp.X-sw*0.5-MARGIN); nY=sClamp(nY,sh*0.5+MARGIN,vp.Y-sh*0.5-MARGIN) end
         d.obj.Position=UDim2.fromOffset(nX,nY)
     end
-    UIS.InputChanged:Connect(function(i) if not activeDrag then return end
+    UIS.InputChanged:Connect(function(i) if not _activeDrag then return end
         if i.UserInputType==Enum.UserInputType.MouseMovement then applyDragMove(i.Position.X,i.Position.Y) end end)
-    UIS.TouchMoved:Connect(function(t) if not activeDrag then return end; applyDragMove(t.Position.X,t.Position.Y) end)
+    UIS.TouchMoved:Connect(function(t) if not _activeDrag then return end; applyDragMove(t.Position.X,t.Position.Y) end)
     local function makeDraggable(handle,obj,onTap)
         handle.InputBegan:Connect(function(i)
             if i.UserInputType~=Enum.UserInputType.MouseButton1 and i.UserInputType~=Enum.UserInputType.Touch then return end
-            if activeDrag then return end
+            if _activeDrag then return end
             local par=obj.Parent; local pA=par and par.AbsolutePosition or Vector2.zero
             local ax=obj.AnchorPoint.X; local ay=obj.AnchorPoint.Y
-            activeDrag={obj=obj,sX=i.Position.X,sY=i.Position.Y,
+            _activeDrag={obj=obj,sX=i.Position.X,sY=i.Position.Y,
                 oX=obj.AbsolutePosition.X+ax*obj.AbsoluteSize.X-pA.X,
                 oY=obj.AbsolutePosition.Y+ay*obj.AbsoluteSize.Y-pA.Y,
                 moved=false,isWin=(ax==0.5)}; lockCam()
         end)
         handle.InputEnded:Connect(function(i)
             if i.UserInputType~=Enum.UserInputType.MouseButton1 and i.UserInputType~=Enum.UserInputType.Touch then return end
-            if activeDrag and activeDrag.obj==obj then
-                if not activeDrag.moved and onTap then onTap() end; activeDrag=nil; unlockCam() end
+            if _activeDrag and _activeDrag.obj==obj then
+                if not _activeDrag.moved and onTap then onTap() end; _activeDrag=nil; unlockCam() end
         end)
     end
-    FloatBtn.InputBegan:Connect(function(i)
-        if i.UserInputType~=Enum.UserInputType.MouseButton1 and i.UserInputType~=Enum.UserInputType.Touch then return end
-        if FloatBtn:GetAttribute("Locked") or activeDrag then return end
-        local par=FloatBtn.Parent; local pA=par and par.AbsolutePosition or Vector2.zero
-        activeDrag={obj=FloatBtn,sX=i.Position.X,sY=i.Position.Y,
-            oX=FloatBtn.AbsolutePosition.X-pA.X,oY=FloatBtn.AbsolutePosition.Y-pA.Y,moved=false,isWin=false}; lockCam()
-    end)
-    FloatBtn.InputEnded:Connect(function(i)
-        if i.UserInputType~=Enum.UserInputType.MouseButton1 and i.UserInputType~=Enum.UserInputType.Touch then return end
-        if activeDrag and activeDrag.obj==FloatBtn then activeDrag=nil; unlockCam() end
-    end)
+    -- Som UI
+    local _uiSound=Instance.new("Sound",Win)
+    _uiSound.SoundId="rbxassetid://139719503904449"
+    _uiSound.Volume=3
+    _uiSound.RollOffMaxDistance=0
+    -- registra lockCam/unlockCam para o drag global
+    _lockCam_fn=lockCam; _unlockCam_fn=unlockCam
+    makeFloatDraggable(FloatBtn, nil)
+    -- GhostFloatBtn hookeiado após ser criado (ver abaixo)
     -- Animação janela
     local animating=false
     local WS=UDim2.fromOffset(580,460); local WS0=UDim2.fromOffset(580,0)
@@ -1426,11 +1459,13 @@ do
     local tiC=TweenInfo.new(0.22,Enum.EasingStyle.Quart,Enum.EasingDirection.In)
     local function openWin()
         if animating then return end; animating=true; local p=Win.Position
+        if _uiSound then _uiSound:Play() end
         Win.Visible=true; Win.Size=WS0; Win.Position=p
         local t=TS:Create(Win,tiO,{Size=WS}); t:Play(); t.Completed:Connect(function() animating=false end)
     end
     local function closeWin()
         if animating then return end; animating=true; local p=Win.Position
+        if _uiSound then _uiSound:Play() end
         local t=TS:Create(Win,tiC,{Size=WS0}); t:Play()
         t.Completed:Connect(function() Win.Visible=false; Win.Size=WS; Win.Position=p; animating=false end)
     end
@@ -1464,7 +1499,6 @@ do
                 end end end
     end
     hookCollapse(SheriffPage); hookCollapse(SettingsPage)
-    -- Visual e Player são criados depois — hookeia via task.defer
     task.defer(function()
         hookCollapse(VisualPage); hookCollapse(PlayerPage)
     end)
@@ -1474,6 +1508,7 @@ do
         if d.Name~="ToggleFrame" or not d:IsA("Frame") then return end
         if d:GetAttribute("_hooked") then return end
         d:SetAttribute("_hooked",true)
+        local knob
         local function flip()
             local on=not d:GetAttribute("IsOn"); d:SetAttribute("IsOn",on)
             TS:Create(d,tiTog,{BackgroundColor3=on and Color3.fromRGB(61,0,107) or Color3.fromRGB(17,17,17)}):Play()
@@ -1483,13 +1518,10 @@ do
                 BackgroundColor3=on and Color3.fromRGB(187,119,255) or Color3.fromRGB(85,85,85)}):Play() end
         end
         d.InputBegan:Connect(function(i)
-            if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then flip() end
-        end)
+            if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then flip() end end)
     end
     for _,d in ipairs(Win:GetDescendants()) do setupToggle(d) end
-    Win.DescendantAdded:Connect(function(d)
-        task.defer(function() setupToggle(d) end)
-    end)
+    Win.DescendantAdded:Connect(function(d) task.defer(function() setupToggle(d) end) end)
     -- Dropdown flutuante
     local tiDD=TweenInfo.new(0.14,Enum.EasingStyle.Quart,Enum.EasingDirection.Out)
     local openDDPanel=nil; local justOpened=false
@@ -1516,13 +1548,13 @@ do
             if dh then
                 dh.InputBegan:Connect(function(i)
                     if i.UserInputType~=Enum.UserInputType.MouseButton1 and i.UserInputType~=Enum.UserInputType.Touch then return end
-                    if activeDrag then return end
-                    activeDrag={obj=panel,sX=i.Position.X,sY=i.Position.Y,
+                    if _activeDrag then return end
+                    _activeDrag={obj=panel,sX=i.Position.X,sY=i.Position.Y,
                         oX=panel.AbsolutePosition.X,oY=panel.AbsolutePosition.Y,moved=false,isWin=false}
                 end)
                 dh.InputEnded:Connect(function(i)
                     if i.UserInputType~=Enum.UserInputType.MouseButton1 and i.UserInputType~=Enum.UserInputType.Touch then return end
-                    if activeDrag and activeDrag.obj==panel then activeDrag=nil end
+                    if _activeDrag and _activeDrag.obj==panel then _activeDrag=nil end
                 end)
             end
             dd.InputBegan:Connect(function(i)
@@ -1803,7 +1835,7 @@ end
 -- ================================================================
 --  VISUAL TAB — UI
 -- ================================================================
-local _,espItems=makeCat(VisualPage,"PlayerESPCat","Player ESP",1,"rbxassetid://10734963777")
+local _,espItems=makeCat(VisualPage,"PlayerESPCat","Player ESP",1)
 
 -- Toggle: Player ESP
 do local _,_,s=makeToggleRow(espItems,1,"Player ESP",false,function(v)
@@ -1817,7 +1849,7 @@ do local _,s=makeSliderRow(espItems,3,"Name Size",8,28,14,function(v)
 end); _ui.setNameSize=s end
 
 -- Categoria: Item ESP
-local _,itemESPItems=makeCat(VisualPage,"ItemESPCat","Item ESP",2,"rbxassetid://10734951505")
+local _,itemESPItems=makeCat(VisualPage,"ItemESPCat","Item ESP",2)
 do local _,_,s=makeToggleRow(itemESPItems,1,"Gun ESP",false,function(v)
     espConfig.gunEnabled=v
     if v then enableGunESP() else disableGunESP() end
@@ -1943,6 +1975,8 @@ end
 
 -- FloatBtn Ghost
 local GhostFloatBtn=Instance.new("TextButton",SG)
+-- drag hookeiado após controller definir makeFloatDraggable
+task.defer(function() if makeFloatDraggable then makeFloatDraggable(GhostFloatBtn, toggleGhost) end end)
 GhostFloatBtn.BorderSizePixel=0; GhostFloatBtn.TextSize=13
 GhostFloatBtn.BackgroundColor3=Color3.fromRGB(20,0,35)
 GhostFloatBtn.BackgroundTransparency=0.4
@@ -1987,10 +2021,7 @@ createconnection("GhostLoop",RunService.Heartbeat,function()
 end)
 
 -- Ghost drag
-GhostFloatBtn.InputBegan:Connect(function(i)
-    if i.UserInputType~=Enum.UserInputType.MouseButton1 and i.UserInputType~=Enum.UserInputType.Touch then return end
-    if GhostFloatBtn:GetAttribute("Locked") then pcall(toggleGhost); return end
-end)
+-- Ghost drag handled in controller
 
 -- Ghost keybind global
 createconnection("GhostKey",UIS.InputBegan,function(i,gp)
@@ -2013,139 +2044,23 @@ end)
 --  PLAYER TAB — UI
 -- ================================================================
 do -- bloco isolado Player tab
-local _,movItems=makeCat(PlayerPage,"MovementCat","Movement",1,"rbxassetid://10709808451")
+local _,movItems=makeCat(PlayerPage,"MovementCat","Movement",1)
 do local _,s=makeSliderRow(movItems,1,"Walk Speed",16,100,16,function(v) setSpeed(v) end); _ui.setSpeed=s end
 do local _,s=makeSliderRow(movItems,2,"Jump Power",50,250,50,function(v) setJump(v) end); _ui.setJump=s end
 
-local _,abItems=makeCat(PlayerPage,"AbilitiesCat","Abilities",2,"rbxassetid://10734950951")
+local _,abItems=makeCat(PlayerPage,"AbilitiesCat","Abilities",2)
 do makeToggleRow(abItems,1,"Anti-Fling",false,function(v) if v then startAntiFling() else stopAntiFling() end end) end
 do makeToggleRow(abItems,2,"NoClip",false,function(v) if v then startNoClip() else stopNoClip() end end) end
 do makeToggleRow(abItems,3,"Anti-AFK",false,function(v) if v then startAntiAFK() else stopAntiAFK() end end) end
 
-local _,ghostItems=makeCat(PlayerPage,"GhostCat","Ghost Mode",3,"rbxassetid://10734952307")
+local _,ghostItems=makeCat(PlayerPage,"GhostCat","Ghost Mode",3)
 
--- Ghost Float + Painel (igual ao Auto Shot)
-do
-    local item=Instance.new("Frame",ghostItems)
-    item.ZIndex=5; item.BorderSizePixel=0; item.AutomaticSize=Enum.AutomaticSize.Y
-    item.Size=UDim2.new(1,0,0,0); item.Name="GhostFloatItem"; item.LayoutOrder=1; item.BackgroundTransparency=1
-    local il=Instance.new("UIListLayout",item); il.SortOrder=Enum.SortOrder.LayoutOrder
-    local divEnd=Instance.new("Frame",item); divEnd.BorderSizePixel=0
-    divEnd.BackgroundColor3=Color3.fromRGB(13,13,13); divEnd.Size=UDim2.new(1,0,0,1)
-    divEnd.Name="Div"; divEnd.LayoutOrder=99
-    -- linha principal
-    local row1=Instance.new("Frame",item); row1.BorderSizePixel=0
-    row1.Size=UDim2.new(1,0,0,44); row1.Name="Row1"; row1.LayoutOrder=1; row1.BackgroundTransparency=1
-    makeLbl(row1,"Ghost Float Button",11)
-    local bFloat=Instance.new("TextButton",row1); bFloat.BorderSizePixel=0; bFloat.TextSize=10
-    bFloat.TextColor3=Color3.fromRGB(154,69,222); bFloat.BackgroundColor3=Color3.fromRGB(16,0,27)
-    bFloat.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
-    bFloat.Size=UDim2.new(0,56,0,22); bFloat.Text="Float"
-    bFloat.Name="Btn_GhostFloat"; bFloat.Position=UDim2.new(1,-62,0.5,-11)
-    corner(bFloat,3); mkS(bFloat,Color3.fromRGB(51,0,97))
-    -- painel de config
-    local fcp=Instance.new("Frame",item); fcp.Visible=false; fcp.ZIndex=10; fcp.BorderSizePixel=0
-    fcp.BackgroundColor3=Color3.fromRGB(9,0,15); fcp.AutomaticSize=Enum.AutomaticSize.Y
-    fcp.Size=UDim2.new(1,0,0,0); fcp.Name="GhostCfgPanel"; fcp.LayoutOrder=2
-    corner(fcp,4); mkS(fcp,Color3.fromRGB(23,0,38))
-    local fcpPad=Instance.new("UIPadding",fcp)
-    fcpPad.PaddingTop=UDim.new(0,8); fcpPad.PaddingRight=UDim.new(0,8)
-    fcpPad.PaddingLeft=UDim.new(0,8); fcpPad.PaddingBottom=UDim.new(0,8)
-    local fcpLL=Instance.new("UIListLayout",fcp); fcpLL.Padding=UDim.new(0,6); fcpLL.SortOrder=Enum.SortOrder.LayoutOrder
-    -- Label input
-    local pr1=Instance.new("Frame",fcp); pr1.BorderSizePixel=0; pr1.Size=UDim2.new(1,0,0,24)
-    pr1.Name="GPR1"; pr1.LayoutOrder=1; pr1.BackgroundTransparency=1
-    local tl1=Instance.new("TextLabel",pr1); tl1.TextSize=10; tl1.TextXAlignment=Enum.TextXAlignment.Left
-    tl1.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
-    tl1.TextColor3=Color3.fromRGB(86,86,86); tl1.BackgroundTransparency=1; tl1.Size=UDim2.new(0,55,0,24); tl1.Text="Label"
-    local lblInp=Instance.new("TextBox",pr1); lblInp.Name="GLblInp"
-    lblInp.TextXAlignment=Enum.TextXAlignment.Left; lblInp.PlaceholderColor3=Color3.fromRGB(52,52,52)
-    lblInp.BorderSizePixel=0; lblInp.TextSize=11; lblInp.TextColor3=Color3.fromRGB(171,171,171)
-    lblInp.BackgroundColor3=Color3.fromRGB(14,14,14)
-    lblInp.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
-    lblInp.ClearTextOnFocus=false; lblInp.PlaceholderText="Label..."
-    lblInp.Size=UDim2.new(1,-62,0,20); lblInp.Position=UDim2.new(0,60,0,2); lblInp.Text="Ghost"
-    corner(lblInp,3); mkS(lblInp,Color3.fromRGB(35,0,57))
-    lblInp:GetPropertyChangedSignal("Text"):Connect(function() GhostFloatBtn.Text=lblInp.Text end)
-    -- Width slider
-    local pr2=Instance.new("Frame",fcp); pr2.BorderSizePixel=0; pr2.Size=UDim2.new(1,0,0,24)
-    pr2.Name="GPR2"; pr2.LayoutOrder=2; pr2.BackgroundTransparency=1
-    local tl2=Instance.new("TextLabel",pr2); tl2.TextSize=10; tl2.TextXAlignment=Enum.TextXAlignment.Left
-    tl2.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
-    tl2.TextColor3=Color3.fromRGB(86,86,86); tl2.BackgroundTransparency=1; tl2.Size=UDim2.new(0,55,0,24); tl2.Text="Width"
-    local wbg=Instance.new("Frame",pr2); wbg.BorderSizePixel=0; wbg.BackgroundColor3=Color3.fromRGB(35,0,57)
-    wbg.Size=UDim2.new(1,-90,0,4); wbg.Position=UDim2.new(0,58,0,10); corner(wbg,2)
-    local wfill=Instance.new("Frame",wbg); wfill.BorderSizePixel=0; wfill.BackgroundColor3=Color3.fromRGB(120,0,188)
-    local initWP=(80-50)/(200-50); wfill.Size=UDim2.new(initWP,0,1,0); corner(wfill,2)
-    local wknob=Instance.new("Frame",wbg); wknob.BorderSizePixel=0; wknob.BackgroundColor3=Color3.fromRGB(120,0,188)
-    wknob.Size=UDim2.new(0,10,0,10); wknob.Position=UDim2.new(initWP,-5,0.5,-5); corner(wknob,5)
-    local wval=Instance.new("TextLabel",pr2); wval.TextSize=10
-    wval.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
-    wval.TextColor3=Color3.fromRGB(120,69,171); wval.BackgroundTransparency=1; wval.Size=UDim2.new(0,30,0,24)
-    wval.Text="80px"; wval.Position=UDim2.new(1,-30,0,0)
-    local wsl=false
-    local function apW(p) p=math.clamp(p,0,1); wfill.Size=UDim2.new(p,0,1,0); wknob.Position=UDim2.new(p,-5,0.5,-5)
-        local v=math.floor(50+(200-50)*p); wval.Text=tostring(v).."px"
-        GhostFloatBtn.Size=UDim2.fromOffset(v,GhostFloatBtn.Size.Y.Offset) end
-    apW(initWP)
-    wbg.InputBegan:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then wsl=true; apW((i.Position.X-wbg.AbsolutePosition.X)/wbg.AbsoluteSize.X) end end)
-    wbg.InputEnded:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then wsl=false end end)
-    UIS.InputChanged:Connect(function(i) if wsl and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch) then apW((i.Position.X-wbg.AbsolutePosition.X)/wbg.AbsoluteSize.X) end end)
-    -- Height slider
-    local pr3=Instance.new("Frame",fcp); pr3.BorderSizePixel=0; pr3.Size=UDim2.new(1,0,0,24)
-    pr3.Name="GPR3"; pr3.LayoutOrder=3; pr3.BackgroundTransparency=1
-    local tl3=Instance.new("TextLabel",pr3); tl3.TextSize=10; tl3.TextXAlignment=Enum.TextXAlignment.Left
-    tl3.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
-    tl3.TextColor3=Color3.fromRGB(86,86,86); tl3.BackgroundTransparency=1; tl3.Size=UDim2.new(0,55,0,24); tl3.Text="Height"
-    local hbg=Instance.new("Frame",pr3); hbg.BorderSizePixel=0; hbg.BackgroundColor3=Color3.fromRGB(35,0,57)
-    hbg.Size=UDim2.new(1,-90,0,4); hbg.Position=UDim2.new(0,58,0,10); corner(hbg,2)
-    local hfill=Instance.new("Frame",hbg); hfill.BorderSizePixel=0; hfill.BackgroundColor3=Color3.fromRGB(120,0,188)
-    local initHP=(38-28)/(100-28); hfill.Size=UDim2.new(initHP,0,1,0); corner(hfill,2)
-    local hknob=Instance.new("Frame",hbg); hknob.BorderSizePixel=0; hknob.BackgroundColor3=Color3.fromRGB(120,0,188)
-    hknob.Size=UDim2.new(0,10,0,10); hknob.Position=UDim2.new(initHP,-5,0.5,-5); corner(hknob,5)
-    local hval=Instance.new("TextLabel",pr3); hval.TextSize=10
-    hval.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Regular)
-    hval.TextColor3=Color3.fromRGB(120,69,171); hval.BackgroundTransparency=1; hval.Size=UDim2.new(0,30,0,24)
-    hval.Text="38px"; hval.Position=UDim2.new(1,-30,0,0)
-    local hsl=false
-    local function apH(p) p=math.clamp(p,0,1); hfill.Size=UDim2.new(p,0,1,0); hknob.Position=UDim2.new(p,-5,0.5,-5)
-        local v=math.floor(28+(100-28)*p); hval.Text=tostring(v).."px"
-        GhostFloatBtn.Size=UDim2.fromOffset(GhostFloatBtn.Size.X.Offset,v) end
-    apH(initHP)
-    hbg.InputBegan:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then hsl=true; apH((i.Position.X-hbg.AbsolutePosition.X)/hbg.AbsoluteSize.X) end end)
-    hbg.InputEnded:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then hsl=false end end)
-    UIS.InputChanged:Connect(function(i) if hsl and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch) then apH((i.Position.X-hbg.AbsolutePosition.X)/hbg.AbsoluteSize.X) end end)
-    -- Lock / Save Pos
-    local pr4=Instance.new("Frame",fcp); pr4.BorderSizePixel=0; pr4.Size=UDim2.new(1,0,0,26)
-    pr4.Name="GPR4"; pr4.LayoutOrder=4; pr4.BackgroundTransparency=1
-    local lkBtn=Instance.new("TextButton",pr4); lkBtn.BorderSizePixel=0; lkBtn.TextSize=10
-    lkBtn.TextColor3=Color3.fromRGB(69,0,103); lkBtn.BackgroundColor3=Color3.fromRGB(11,0,16)
-    lkBtn.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold)
-    lkBtn.Size=UDim2.new(0,72,0,22); lkBtn.Text="Free"; lkBtn.Name="GLockBtn"; corner(lkBtn,3); mkS(lkBtn,Color3.fromRGB(27,0,41))
-    local svBtn=Instance.new("TextButton",pr4); svBtn.BorderSizePixel=0; svBtn.TextSize=10
-    svBtn.TextColor3=Color3.fromRGB(205,137,255); svBtn.BackgroundColor3=Color3.fromRGB(62,0,108)
-    svBtn.FontFace=Font.new("rbxasset://fonts/families/GothamSSm.json",Enum.FontWeight.Bold)
-    svBtn.Size=UDim2.new(0,80,0,22); svBtn.Text="Save Pos"; svBtn.Position=UDim2.new(0,78,0,0)
-    corner(svBtn,3); mkS(svBtn,Color3.fromRGB(120,0,188))
-    local fbLocked=false
-    lkBtn.MouseButton1Click:Connect(function()
-        fbLocked=not fbLocked; lkBtn.Text=fbLocked and "Locked" or "Free"
-        lkBtn.TextColor3=fbLocked and Color3.fromRGB(119,0,187) or Color3.fromRGB(68,0,102)
-        GhostFloatBtn:SetAttribute("Locked",fbLocked)
-    end)
-    svBtn.MouseButton1Click:Connect(function() svBtn.Text="Saved!"; task.delay(1.5,function() if svBtn and svBtn.Parent then svBtn.Text="Save Pos" end end) end)
-    -- toggle Float
-    local isShow=false
-    bFloat.MouseButton1Click:Connect(function()
-        isShow=not isShow; GhostFloatBtn.Visible=isShow; fcp.Visible=isShow
-        bFloat.BackgroundColor3=isShow and Color3.fromRGB(61,0,107) or Color3.fromRGB(15,0,26)
-        bFloat.TextColor3=isShow and Color3.fromRGB(204,136,255) or Color3.fromRGB(153,68,221)
-    end)
-end
+-- Ghost Float + Panel
+makeFloatPanelRow(ghostItems,1,"Ghost Float Button",GhostFloatBtn,"Ghost")
 
 -- Keybind Ghost
 do
-    makeKeybindRow(ghostItems,2,"Ghost Hotkey","G",false,
+    makeKeybindRow(ghostItems,2,"Ghost Hotkey","H",false,
         function(k) ghostKey=k end,
         function(v) ghostKeyEnabled=v end)
 end
