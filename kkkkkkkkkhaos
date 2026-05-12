@@ -3,7 +3,6 @@
 -- ================================================================
 
 local _ui = {} -- setters UI
--- som criado após janela (ver controller)
 
 do
     local pg = pcall(function() return game:GetService("CoreGui") end) and game:GetService("CoreGui") or game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
@@ -37,7 +36,7 @@ TUI.Name="ToggleUI"; TUI.Position=UDim2.new(0.5,-18,0,12)
 Instance.new("UICorner",TUI).CornerRadius=UDim.new(0,6)
 do local s=Instance.new("UIStroke",TUI); s.Color=Color3.fromRGB(120,0,188); s.ApplyStrokeMode=Enum.ApplyStrokeMode.Border end
 
--- FloatBtn (40% transparente)
+-- FloatBtn
 local FloatBtn=Instance.new("TextButton",SG)
 FloatBtn.BorderSizePixel=0; FloatBtn.TextSize=13
 FloatBtn.TextColor3=Color3.fromRGB(205,137,255)
@@ -253,7 +252,7 @@ local function makeKeybindRow(parent,order,label,defKey,defOn,onKey,onToggle)
     return row,kbBtn,tf,setToggleKB,setKeyBtn
 end
 
--- Slider row com input manual
+-- Slider row
 local function makeSliderRow(parent,order,label,minV,maxV,defaultV,onChange)
     local row=makeRow(parent,order,44); makeLbl(row,label,11)
     local wrap=Instance.new("Frame",row); wrap.Size=UDim2.new(0,130,0,18)
@@ -331,7 +330,7 @@ local function makeSliderRow(parent,order,label,minV,maxV,defaultV,onChange)
     return row,setSlider
 end
 
--- Dropdown row (painel flutuante real)
+-- Dropdown row
 local _ddC=0
 local function makeDropdownRow(parent,order,label,options,defaultOpt,onChange)
     _ddC=_ddC+1; local pName="KDDPanel_".._ddC
@@ -460,7 +459,7 @@ local function makeFloatPanelRow(parent,order,label,floatRef,defaultLabel)
         corner(lblInp,3); mkS(lblInp,Color3.fromRGB(35,0,57))
         if floatRef then floatRef.Text=lblInp.Text; lblInp:GetPropertyChangedSignal("Text"):Connect(function() floatRef.Text=lblInp.Text end) end
     end
-    -- Sliders Width/Height (função externa para economizar registers)
+    -- Sliders Width/Height
     _makeFCPSlider(fcp,"WBG","WVal","Width",2,50,200,0.27,function(v) if floatRef then floatRef.Size=UDim2.fromOffset(v,floatRef.Size.Y.Offset) end end)
     _makeFCPSlider(fcp,"HBG","HVal","Height",3,28,100,0.17,function(v) if floatRef then floatRef.Size=UDim2.fromOffset(floatRef.Size.X.Offset,v) end end)
     -- Lock/Save
@@ -664,7 +663,7 @@ local function cfgList()
 end
 
 -- ================================================================
---  SETTINGS PAGE — fiel ao original
+--  SETTINGS PAGE
 -- ================================================================
 local cfgCat, cfgItems = makeCat(SettingsPage,"ConfigurationsCat","Configurations",1)
 
@@ -758,7 +757,7 @@ do
     selArr.TextColor3=Color3.fromRGB(103,103,103); selArr.BackgroundTransparency=1
     selArr.Size=UDim2.new(0,16,0,28); selArr.Text="v"; selArr.Name="SelArr"; selArr.Position=UDim2.new(1,-20,0,0)
 
-    -- dropdown panel (inline, expande abaixo do selFrame)
+    -- dropdown panel
     local cfgDropPanel=Instance.new("Frame",item2)
     cfgDropPanel.Visible=false; cfgDropPanel.ZIndex=10; cfgDropPanel.BorderSizePixel=0
     cfgDropPanel.BackgroundColor3=Color3.fromRGB(9,0,15); cfgDropPanel.AutomaticSize=Enum.AutomaticSize.Y
@@ -1447,7 +1446,7 @@ do
     -- Som UI
     local _uiSound=Instance.new("Sound",Win)
     _uiSound.SoundId="rbxassetid://139719503904449"
-    _uiSound.Volume=3
+    _uiSound.Volume=6
     _uiSound.RollOffMaxDistance=0
     -- registra lockCam/unlockCam para o drag global
     _lockCam_fn=lockCam; _unlockCam_fn=unlockCam
