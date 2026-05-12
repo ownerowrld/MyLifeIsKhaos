@@ -1446,7 +1446,7 @@ do
     -- Som UI
     local _uiSound=Instance.new("Sound",Win)
     _uiSound.SoundId="rbxassetid://139719503904449"
-    _uiSound.Volume=50
+    _uiSound.Volume=70
     _uiSound.RollOffMaxDistance=0
     -- registra lockCam/unlockCam para o drag global
     _lockCam_fn=lockCam; _unlockCam_fn=unlockCam
